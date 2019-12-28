@@ -1,6 +1,7 @@
 package com.tim.iot.common;
 
 import androidx.annotation.NonNull;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * DeviceInfo
@@ -9,11 +10,14 @@ import androidx.annotation.NonNull;
  * @date 2019/12/25 17:42
  */
 public class DeviceInfo {
-
+    @SerializedName("deviceId")
     private String deviceId;
     private String mac;
     private String imei;
     private String type;
+
+    public DeviceInfo() {
+    }
 
     public DeviceInfo(String deviceId, String mac, String imei, String type) {
         this.deviceId = deviceId;

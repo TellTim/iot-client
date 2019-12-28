@@ -5,10 +5,11 @@ import com.tim.common.ICallback;
 import com.tim.common.Logger;
 import com.tim.common.Respond;
 import com.tim.iot.BuildConfig;
+import com.tim.iot.common.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
+import com.tim.iot.common.QrCodeInfo;
 import com.tim.iot.register.api.IRegisterApi;
 import com.tim.iot.register.protocol.Register;
-import com.tim.iot.register.protocol.ResponseCode;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -52,7 +53,7 @@ public class RegisterService implements IRegisterServer {
     }
 
     @Override
-    public void syncFromServer(DeviceInfo deviceInfo, ICallback<String, Respond> callback) {
+    public void syncFromServer(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond> callback) {
         Register.Param param = new Register.Param();
         param.setDeviceId(deviceInfo.getDeviceId());
         param.setImei(deviceInfo.getImei());
@@ -66,12 +67,12 @@ public class RegisterService implements IRegisterServer {
 
             @Override
             public void onNext(Register.Result result) {
-                if (ResponseCode.SUCCESS_AUTHORIZED.equals(result.getCode())) {
-                    callback.onSuccess(result.getData());
-                } else if (ResponseCode.UN_AUTHORIZED.equals(result.getCode())) {
-                    callback.onFail(new Respond(Respond.State.NO_REMOTE_AUTH, result.getQrCode()));
+                if (Respond.State.BIND_EXIST.getCode().equals(result.getCode())) {
+                    callback.onSuccess(result.getAccountInfo());
+                } else if (Respond.State.BIND_NOT_EXIST.getCode().equals(result.getCode())) {
+                    callback.onFail(new Respond<QrCodeInfo>(Respond.State.BIND_NOT_EXIST, result.getQrCodeInfo()));
                 } else {
-                    callback.onFail(new Respond(Respond.State.UNKNOWN_EXCEPTION, result.getCode()));
+                    callback.onFail(new Respond<String>(Respond.State.ERROR, result.getCode()));
                     logger.e("unSupport response code"+result.getCode());
                 }
             }

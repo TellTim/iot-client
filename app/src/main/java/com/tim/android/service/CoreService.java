@@ -24,6 +24,7 @@ import com.tim.common.Respond;
 import com.tim.iot.BuildConfig;
 import com.tim.iot.IIotClient;
 import com.tim.iot.IotClient;
+import com.tim.iot.common.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -177,10 +178,10 @@ public class CoreService extends Service
 
     private void syncRemoteAuth() {
         logger.d("syncRemoteAuth: 开始同步服务端授权状态");
-        iotClient.syncRemoteAuthorized(new ICallback<String, Respond>() {
+        iotClient.syncRemoteAuthorized(new ICallback<AccountInfo, Respond>() {
             @Override
-            public void onSuccess(String s) {
-                logger.d("服务端记录设备"+s+"已经授权通过");
+            public void onSuccess(AccountInfo accountInfo) {
+                logger.d("服务端记录设备"+accountInfo.getAccount()+"已经授权通过");
             }
 
             @Override
@@ -220,6 +221,7 @@ public class CoreService extends Service
 
     @Override
     public void onConnected() {
+        //网络连接后,同步后端的设备授权状态
         syncRemoteAuth();
     }
 }

@@ -1,6 +1,8 @@
 package com.tim.iot.register.protocol;
 
 import com.google.gson.annotations.SerializedName;
+import com.tim.iot.common.AccountInfo;
+import com.tim.iot.common.QrCodeInfo;
 
 /**
  * Register
@@ -10,7 +12,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class Register {
 
-    public static class Param{
+    public static class Param {
         @SerializedName("deviceId")
         private String deviceId;
         private String imei;
@@ -60,29 +62,26 @@ public class Register {
         }
     }
 
-    public static class Result extends BaseResult{
-        @SerializedName("qrCode")
-        private String qrCode;
-        @SerializedName("expireIn")
-        private int expireIn;
+    public static class Result extends BaseResult {
+        @SerializedName("qrCodeInfo")
+        private QrCodeInfo qrCodeInfo;
+        @SerializedName("accountInfo")
+        private AccountInfo accountInfo;
 
-        public String getQrCode() {
-            return qrCode;
+        public AccountInfo getAccountInfo() {
+            return accountInfo;
         }
 
-        public void setQrCode(String qrCode) {
-            this.qrCode = qrCode;
+        public void setAccountInfo(AccountInfo accountInfo) {
+            this.accountInfo = accountInfo;
         }
 
-        public int getExpireIn() {
-            return expireIn;
+        public QrCodeInfo getQrCodeInfo() {
+            return qrCodeInfo;
         }
 
-        public void setExpireIn(int expireIn) {
-            this.expireIn = expireIn;
+        public void setQrCodeInfo(QrCodeInfo qrCodeInfo) {
+            this.qrCodeInfo = qrCodeInfo;
         }
     }
-
-
-
 }

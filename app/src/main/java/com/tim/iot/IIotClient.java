@@ -2,7 +2,7 @@ package com.tim.iot;
 
 import com.tim.common.ICallback;
 import com.tim.common.Respond;
-import com.tim.iot.local.entity.AccountInfo;
+import com.tim.iot.common.AccountInfo;
 
 /**
  * IIotClient
@@ -14,5 +14,5 @@ public interface IIotClient {
     void checkLocalAuthorized(ICallback<String, Respond>callback);
     void getAccount();
     void saveAccount(AccountInfo accountInfo);
-    void syncRemoteAuthorized(ICallback<String,Respond>callback);
+    void syncRemoteAuthorized(ICallback<AccountInfo,Respond>callback);
 }

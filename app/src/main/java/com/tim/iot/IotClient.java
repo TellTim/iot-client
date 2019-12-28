@@ -7,9 +7,10 @@ import com.tim.common.Respond;
 import com.tim.iot.auth.AuthServer;
 import com.tim.iot.auth.IAuthServer;
 import com.tim.iot.common.DeviceInfo;
+import com.tim.iot.common.QrCodeInfo;
 import com.tim.iot.local.ILocalServer;
 import com.tim.iot.local.LocalServer;
-import com.tim.iot.local.entity.AccountInfo;
+import com.tim.iot.common.AccountInfo;
 import com.tim.iot.register.IRegisterServer;
 import com.tim.iot.register.RegisterService;
 import java.util.concurrent.ExecutorService;
@@ -81,22 +82,28 @@ public class IotClient implements IIotClient{
     }
 
     @Override
-    public void syncRemoteAuthorized(ICallback<String, Respond> callback) {
-        registerServer.syncFromServer(this.deviceInfo, new ICallback<String, Respond>() {
+    public void syncRemoteAuthorized(ICallback<AccountInfo, Respond> callback) {
+        registerServer.syncFromServer(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
-            public void onSuccess(String s) {
-                logger.d("syncRemoteAuthorized account "+s);
-                localServer.saveAuthToLocal(s);
-                callback.onSuccess(s);
+            public void onSuccess(AccountInfo accountInfo) {
+                logger.d("syncRemoteAuthorized accountInfo "+accountInfo.toString());
+                localServer.saveAuthToLocal(accountInfo.toString());
+                callback.onSuccess(accountInfo);
             }
 
             @Override
             public void onFail(Respond respond) {
+                if (respond.getState().equals(Respond.State.BIND_NOT_EXIST)){
+                    logger.d("onFail "+((QrCodeInfo)respond.getT()).getQrCode());
+                }else{
+                    logger.d("onFail "+((String)respond.getT()));
+                }
                 callback.onFail(respond);
             }
 
             @Override
             public void onError(Throwable throwable) {
+                logger.e("onError "+throwable.getCause());
                 callback.onError(throwable);
             }
         });

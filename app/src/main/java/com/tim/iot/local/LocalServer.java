@@ -27,7 +27,7 @@ public class LocalServer implements ILocalServer {
                 this.context.getSharedPreferences(AppConst.AUTH_SHARED_PREF, Context.MODE_PRIVATE);
         String authValue = sharedPreferences.getString(AppConst.AUTH_ACCOUNT_ITEM, "");
         if (TextUtils.isEmpty(authValue) || authValue.equals(AppConst.UN_AUTH_ACCOUNT_VALUE)) {
-            callBack.onFail(new Respond(Respond.State.NO_LOCAL_AUTH,"no_local_auth"));
+            callBack.onFail(new Respond(Respond.State.LOCAL_BIND_NOT_EXIST,Respond.State.LOCAL_BIND_NOT_EXIST.getValue()));
         } else {
             String authAccount = authValue.substring(0, authValue.indexOf("&"));
             callBack.onSuccess(authAccount);
