@@ -2,6 +2,7 @@ package com.tim.iot;
 
 import android.content.Context;
 import com.tim.common.ICallback;
+import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.Logger;
 import com.tim.common.Respond;
@@ -83,8 +84,13 @@ public class IotClient implements IIotClient {
     }
 
     @Override
-    public void syncRemoteAuthorized(ISyncQrCodeCallback callback) {
-        registerServer.syncFromServer(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
+    public void syncAuthorized(ISyncAuthorizedCallback callback) {
+
+    }
+
+    @Override
+    public void syncQrCode(ISyncQrCodeCallback callback) {
+        registerServer.syncQrCode(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
             public void onSuccess(AccountInfo accountInfo) {
                 logger.d("syncRemoteAuthorized onSuccess accountInfo " + accountInfo.toString());

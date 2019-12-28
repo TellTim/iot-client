@@ -5,17 +5,16 @@ import com.tim.iot.common.AccountInfo;
 import com.tim.iot.common.QrCodeInfo;
 
 /**
- * Register
+ * QrCode
  *
  * @author Tell.Tim
- * @date 2019/12/28 19:57
+ * @date 2019/12/27 19:11
  */
-public class Register {
+public class QrCode {
+
     public static class Param {
         @SerializedName("deviceId")
         private String deviceId;
-        private String imei;
-        private String mac;
         @SerializedName("timestamp")
         private Long timestamp;
         private String type;
@@ -26,22 +25,6 @@ public class Register {
 
         public void setDeviceId(String deviceId) {
             this.deviceId = deviceId;
-        }
-
-        public String getImei() {
-            return imei;
-        }
-
-        public void setImei(String imei) {
-            this.imei = imei;
-        }
-
-        public String getMac() {
-            return mac;
-        }
-
-        public void setMac(String mac) {
-            this.mac = mac;
         }
 
         public Long getTimestamp() {

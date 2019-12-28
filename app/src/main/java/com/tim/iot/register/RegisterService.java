@@ -9,6 +9,7 @@ import com.tim.iot.common.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
 import com.tim.iot.common.QrCodeInfo;
 import com.tim.iot.register.api.IRegisterApi;
+import com.tim.iot.register.protocol.QrCode;
 import com.tim.iot.register.protocol.Register;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -53,7 +54,42 @@ public class RegisterService implements IRegisterServer {
     }
 
     @Override
-    public void syncFromServer(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond> callback) {
+    public void syncQrCode(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond> callback) {
+        QrCode.Param param = new QrCode.Param();
+        param.setDeviceId(deviceInfo.getDeviceId());
+        param.setType(deviceInfo.getType());
+        param.setTimestamp(System.currentTimeMillis());
+        this.registerApi.qrCode(param).subscribe(new Observer<QrCode.Result>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+            }
+
+            @Override
+            public void onNext(QrCode.Result result) {
+                if (Respond.State.BIND_EXIST.getCode().equals(result.getCode())) {
+                    callback.onSuccess(result.getAccountInfo());
+                } else if (Respond.State.BIND_NOT_EXIST.getCode().equals(result.getCode())) {
+                    callback.onFail(new Respond<QrCodeInfo>(Respond.State.BIND_NOT_EXIST, result.getQrCodeInfo()));
+                } else if(Respond.State.TYPE_INVALID.getCode().equals(result.getCode())){
+                    callback.onFail(new Respond<String>(Respond.State.TYPE_INVALID, result.getCode()+" "+result.getData()));
+                }else{
+                    callback.onFail(new Respond<String>(Respond.State.ERROR, result.getCode()+" "+result.getData()));
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                callback.onError(e);
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+    }
+
+    @Override
+    public void syncAuthorized(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond> callback) {
         Register.Param param = new Register.Param();
         param.setDeviceId(deviceInfo.getDeviceId());
         param.setImei(deviceInfo.getImei());

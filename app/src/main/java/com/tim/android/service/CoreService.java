@@ -18,6 +18,7 @@ import com.tim.android.activity.AuthActivity;
 import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
 import com.tim.common.DeviceUtils;
+import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.INetConnectedCallback;
 import com.tim.common.Logger;
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CoreService extends Service
         implements SharedPreferences.OnSharedPreferenceChangeListener,INetConnectedCallback,
-        ISyncQrCodeCallback {
+        ISyncQrCodeCallback, ISyncAuthorizedCallback {
     private static final Logger logger = Logger.getLogger("CoreService");
 
     private static final int THREAD_POOL_CORE_SIZE = 4;
@@ -180,7 +181,7 @@ public class CoreService extends Service
 
     private void syncRemoteAuth() {
         logger.d("syncRemoteAuth: 开始同步服务端授权状态");
-        iotClient.syncRemoteAuthorized(this);
+        iotClient.syncAuthorized(this);
     }
 
     private void unRegisterNetListener() {
@@ -211,12 +212,11 @@ public class CoreService extends Service
      */
     @Override
     public void onConnected() {
-        syncRemoteAuth();
-        syncAuthConfirm();
+        syncAuthAuthorized();
     }
 
-    private void syncAuthConfirm() {
-
+    private void syncAuthAuthorized() {
+        iotClient.syncAuthorized(this);
     }
 
     /**
@@ -252,6 +252,21 @@ public class CoreService extends Service
      */
     @Override
     public void onSyncQrCodeError(Exception e) {
+
+    }
+
+    @Override
+    public void onSyncAuthorized(AccountInfo accountInfo) {
+
+    }
+
+    @Override
+    public void onSyncUnAuthorized() {
+
+    }
+
+    @Override
+    public void onSyncError(Exception e) {
 
     }
 }
