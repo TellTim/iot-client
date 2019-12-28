@@ -1,13 +1,11 @@
 package com.tim.iot.auth;
 
 /**
- * IIotClient
+ * IAuthServer
  *
  * @author Tell.Tim
  * @date 2019/12/24 19:45
  */
-public interface IIotClient {
-
+public interface IAuthServer {
     void work();
-
 }

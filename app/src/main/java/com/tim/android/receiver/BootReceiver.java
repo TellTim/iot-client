@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import com.tim.android.constant.AppAction;
 import com.tim.android.service.CoreService;
 import com.tim.common.Logger;
 import java.util.Objects;
@@ -20,6 +21,7 @@ public class BootReceiver extends BroadcastReceiver {
         if (intent != null && Objects.equals(intent.getAction(), Intent.ACTION_BOOT_COMPLETED)) {
             Logger.getLogger("BootReceiver").d("Receive boot complete");
             Intent service = new Intent(context, CoreService.class);
+            service.setAction(AppAction.ACTION_BOOT_SYNC_REMOTE_AUTH);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(service);
             } else {

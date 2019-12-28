@@ -1,7 +1,5 @@
 package com.tim.iot.ws;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * IClient
  *
@@ -10,9 +8,9 @@ import java.util.concurrent.TimeUnit;
  */
 public interface IClient {
 
-    void connect(String url,IConnectCallback connectCallback);
+    void connect(String url, WebSocketListener connectCallback);
 
-    void close(String url, ICallBack<Void> closeHandle);
+    void close(String url, ICallback<Void> closeHandle);
 
-    void send(String url,String simpleText,ICallBack sendCallback);
+    void send(String url,String simpleText, ICallback sendCallback);
 }

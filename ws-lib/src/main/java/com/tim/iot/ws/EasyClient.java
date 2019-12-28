@@ -6,7 +6,6 @@ import com.tim.iot.ws.rx.IWebSocket;
 import com.tim.iot.ws.rx.impl.RxWebSocket;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import java.util.concurrent.TimeUnit;
 
 /**
  * EasyClient
@@ -29,7 +28,7 @@ public class EasyClient implements IClient {
     }
 
     @Override
-    public void connect(String url, IConnectCallback connectHandle) {
+    public void connect(String url, WebSocketListener connectHandle) {
         webSocket.connect(url).subscribe(new Observer<WebSocketInfo>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -66,7 +65,7 @@ public class EasyClient implements IClient {
     }
 
     @Override
-    public void close(String url, ICallBack<Void> closeHandle) {
+    public void close(String url, ICallback<Void> closeHandle) {
         Disposable disposable = this.webSocket.connect(url).subscribe();
         if (!disposable.isDisposed()) {
             disposable.dispose();
@@ -77,7 +76,7 @@ public class EasyClient implements IClient {
     }
 
     @Override
-    public void send(String url, String simpleText, ICallBack sendCallback) {
+    public void send(String url, String simpleText, ICallback sendCallback) {
 
     }
 }

@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
  * @author Tell.Tim
  * @date 2019/12/5 12:17
  */
-public interface IConnectCallback {
+public interface WebSocketListener {
     void onConnected();
 
     void onReConnect();

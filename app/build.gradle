@@ -1,7 +1,4 @@
 apply plugin: 'com.android.application'
-def appStorePassword = System.getenv("STORE_PASSWORD")
-def appKeyAlias = System.getenv("KEY_ALIAS")
-def appKeyPassword = System.getenv("KEY_PASSWORD")
 
 android {
   compileSdkVersion 29
@@ -19,18 +16,21 @@ android {
     dev {
       dimension = 'customer'
       buildConfigField "String", "PRODUCT_TYPE", '"HT-4G-C2"'
-      buildConfigField "String", "REGISTER_HOST", '"ws://192.168.1.173:9070/auth/check"'
+      buildConfigField "String", "REGISTER_HOST", '"http://192.168.1.173:10072/device/api/v1/"'
+      buildConfigField "String", "AUTH_HOST", '"ws://192.168.1.173:9070/auth/api/v1/check"'
     }
     pro {
       dimension = 'customer'
       buildConfigField "String", "PRODUCT_TYPE", '"HT-4G-C2"'
-      buildConfigField "String", "REGISTER_HOST", '"ws://as.hdayun.com:8070/auth/check"'
+      buildConfigField "String", "REGISTER_HOST", '"http://as.hdayun.com:8070/device/api/v1/"'
+      buildConfigField "String", "AUTH_HOST", '"ws://as.hdayun.com:9070/auth/api/v1/check"'
     }
 
     awt_pro {
       dimension = 'customer'
       buildConfigField "String", "PRODUCT_TYPE", '"AWT-WIFI-C3"'
-      buildConfigField "String", "REGISTER_HOST", '"ws://as.hdayun.com:8070/auth/check"'
+      buildConfigField "String", "REGISTER_HOST", '"http://as.hdayun.com:8070/device/api/v1/register"'
+      buildConfigField "String", "AUTH_HOST", '"ws://as.hdayun.com:9070/auth/api/v1/check"'
     }
   }
   signingConfigs {
@@ -70,5 +70,11 @@ dependencies {
   testImplementation 'junit:junit:4.12'
   androidTestImplementation 'androidx.test.ext:junit:1.1.1'
   androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+  implementation 'com.squareup.okhttp3:okhttp:4.2.2'
+  implementation 'com.squareup.okhttp3:logging-interceptor:4.2.2'
+  implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+  implementation 'com.squareup.retrofit2:adapter-rxjava2:2.5.0'
+  implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
+  implementation 'com.google.code.gson:gson:2.8.5'
   implementation project(path: ':ws-lib')
 }
