@@ -45,7 +45,8 @@ public class Respond<T> {
         DEVICE_NOT_EXIST("5000", "device not exist"),
         REGISTER_FAILURE("5001", "device not exist"),
         ERROR("9000", "error"),
-        NET_ERROR("9001", "net error");
+        NET_ERROR("9001", "net error"),
+        TYPE_INVALID("9002","type not support");
 
         private String code;
         private String value;

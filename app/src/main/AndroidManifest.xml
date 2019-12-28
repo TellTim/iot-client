@@ -25,8 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.tim.android.activity.AuthActivity" />
-
+        <activity android:name="com.tim.android.activity.AuthActivity"  />
         <receiver android:name="com.tim.android.receiver.BootReceiver"
             android:enabled="true"
             android:exported="true">

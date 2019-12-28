@@ -71,9 +71,10 @@ public class RegisterService implements IRegisterServer {
                     callback.onSuccess(result.getAccountInfo());
                 } else if (Respond.State.BIND_NOT_EXIST.getCode().equals(result.getCode())) {
                     callback.onFail(new Respond<QrCodeInfo>(Respond.State.BIND_NOT_EXIST, result.getQrCodeInfo()));
-                } else {
-                    callback.onFail(new Respond<String>(Respond.State.ERROR, result.getCode()));
-                    logger.e("unSupport response code"+result.getCode());
+                } else if(Respond.State.TYPE_INVALID.getCode().equals(result.getCode())){
+                    callback.onFail(new Respond<String>(Respond.State.TYPE_INVALID, result.getCode()+" "+result.getData()));
+                }else{
+                    callback.onFail(new Respond<String>(Respond.State.ERROR, result.getCode()+" "+result.getData()));
                 }
             }
 

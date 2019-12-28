@@ -26,7 +26,7 @@ public class TestActivity extends AppCompatActivity {
 
     TextView tvAppInfo;
     private boolean mShowRequestPermission = true;
-
+    private static final int REQUEST_PERMISSION_CODE= 101;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,7 +57,7 @@ public class TestActivity extends AppCompatActivity {
                 //存在未允许的权限
                 String[] permissionsArr =
                         mPermissionList.toArray(new String[mPermissionList.size()]);
-                ActivityCompat.requestPermissions(this, permissionsArr, 101);
+                ActivityCompat.requestPermissions(this, permissionsArr, REQUEST_PERMISSION_CODE);
             }
         }
     }
@@ -74,7 +74,7 @@ public class TestActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
             @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 101) {
+        if (requestCode == REQUEST_PERMISSION_CODE) {
             for (int i = 0; i < grantResults.length; i++) {
                 if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                     //判断是否勾选禁止后不再询问

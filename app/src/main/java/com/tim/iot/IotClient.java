@@ -2,15 +2,16 @@ package com.tim.iot;
 
 import android.content.Context;
 import com.tim.common.ICallback;
+import com.tim.common.IDeviceSyncCallback;
 import com.tim.common.Logger;
 import com.tim.common.Respond;
 import com.tim.iot.auth.AuthServer;
 import com.tim.iot.auth.IAuthServer;
+import com.tim.iot.common.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
 import com.tim.iot.common.QrCodeInfo;
 import com.tim.iot.local.ILocalServer;
 import com.tim.iot.local.LocalServer;
-import com.tim.iot.common.AccountInfo;
 import com.tim.iot.register.IRegisterServer;
 import com.tim.iot.register.RegisterService;
 import java.util.concurrent.ExecutorService;
@@ -21,7 +22,7 @@ import java.util.concurrent.ExecutorService;
  * @author Tell.Tim
  * @date 2019/12/27 14:59
  */
-public class IotClient implements IIotClient{
+public class IotClient implements IIotClient {
     private static final Logger logger = Logger.getLogger("AuthServer");
     private static IIotClient instance;
     private ExecutorService executorService;
@@ -82,29 +83,34 @@ public class IotClient implements IIotClient{
     }
 
     @Override
-    public void syncRemoteAuthorized(ICallback<AccountInfo, Respond> callback) {
+    public void syncRemoteAuthorized(IDeviceSyncCallback callback) {
         registerServer.syncFromServer(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
             public void onSuccess(AccountInfo accountInfo) {
-                logger.d("syncRemoteAuthorized accountInfo "+accountInfo.toString());
+                logger.d("syncRemoteAuthorized onSuccess accountInfo " + accountInfo.toString());
                 localServer.saveAuthToLocal(accountInfo.toString());
-                callback.onSuccess(accountInfo);
+                callback.onSyncAuthorized(accountInfo);
             }
 
             @Override
             public void onFail(Respond respond) {
-                if (respond.getState().equals(Respond.State.BIND_NOT_EXIST)){
-                    logger.d("onFail "+((QrCodeInfo)respond.getT()).getQrCode());
-                }else{
-                    logger.d("onFail "+((String)respond.getT()));
+                //只将未授权的回调出去，其他异常需修复处理
+                if (respond.getState().equals(Respond.State.BIND_NOT_EXIST)) {
+                    logger.d("syncRemoteAuthorized onSyncUnAuthorized "
+                            + ((QrCodeInfo) respond.getT()).getQrCode());
+                    callback.onSyncUnAuthorized((QrCodeInfo) respond.getT());
+                } else {
+                    //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
+                    callback.onSyncError(new Exception(((String) respond.getT())));
+                    logger.e("syncRemoteAuthorized onFail " + ((String) respond.getT()));
                 }
-                callback.onFail(respond);
             }
 
             @Override
             public void onError(Throwable throwable) {
-                logger.e("onError "+throwable.getCause());
-                callback.onError(throwable);
+                //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
+                logger.e("syncRemoteAuthorized onError " + throwable.getCause());
+                callback.onSyncError(new Exception(throwable.getMessage()));
             }
         });
     }

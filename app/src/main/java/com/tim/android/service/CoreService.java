@@ -14,18 +14,19 @@ import android.os.Build;
 import android.os.IBinder;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.tim.android.activity.AuthActivity;
 import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
 import com.tim.common.DeviceUtils;
-import com.tim.common.ICallback;
+import com.tim.common.IDeviceSyncCallback;
 import com.tim.common.INetConnectedCallback;
 import com.tim.common.Logger;
-import com.tim.common.Respond;
 import com.tim.iot.BuildConfig;
 import com.tim.iot.IIotClient;
 import com.tim.iot.IotClient;
 import com.tim.iot.common.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
+import com.tim.iot.common.QrCodeInfo;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -40,7 +41,8 @@ import java.util.concurrent.TimeUnit;
  * @date 2019/12/24 9:52
  */
 public class CoreService extends Service
-        implements SharedPreferences.OnSharedPreferenceChangeListener,INetConnectedCallback {
+        implements SharedPreferences.OnSharedPreferenceChangeListener,INetConnectedCallback,
+        IDeviceSyncCallback {
     private static final Logger logger = Logger.getLogger("CoreService");
 
     private static final int THREAD_POOL_CORE_SIZE = 4;
@@ -178,22 +180,7 @@ public class CoreService extends Service
 
     private void syncRemoteAuth() {
         logger.d("syncRemoteAuth: 开始同步服务端授权状态");
-        iotClient.syncRemoteAuthorized(new ICallback<AccountInfo, Respond>() {
-            @Override
-            public void onSuccess(AccountInfo accountInfo) {
-                logger.d("服务端记录设备"+accountInfo.getAccount()+"已经授权通过");
-            }
-
-            @Override
-            public void onFail(Respond respond) {
-
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-
-            }
-        });
+        iotClient.syncRemoteAuthorized(this);
     }
 
     private void unRegisterNetListener() {
@@ -219,9 +206,47 @@ public class CoreService extends Service
         }
     }
 
+    /**
+     *  网络连接后,同步后端的设备授权状态
+     */
     @Override
     public void onConnected() {
-        //网络连接后,同步后端的设备授权状态
         syncRemoteAuth();
+    }
+
+    /**
+     * 同步授权状态,远端已经授权通过
+     * @param accountInfo AccountInfo
+     */
+    @Override
+    public void onSyncAuthorized(AccountInfo accountInfo) {
+        //取消授权界面
+    }
+
+    /**
+     * 同步授权状态，设备并未授权
+     * @param qrCodeInfo QrCodeInfo
+     *
+     */
+    @Override
+    public void onSyncUnAuthorized(QrCodeInfo qrCodeInfo) {
+        //todo 需验证断网恢复后,原本在授权界面，界面的销毁问题
+        Intent activityIntent = new Intent(this, AuthActivity.class);
+        activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
+        startActivity(activityIntent);
+        //开启websocket,连接成功后,跳转到授权界面，连接失败则通过埋点，将异常上报给后端等待分析
+        //通过bindService的方式，用户在授权过期后，点击重新获取二维码
+    }
+
+    /**
+     * 同步授权状态，出现异常，此处需上报给异常处理器。等候分析
+     * 有以下异常
+     *  设备类型错误,
+     *  与后端交互协议错误
+     * @param e Exception
+     */
+    @Override
+    public void onSyncError(Exception e) {
+
     }
 }
