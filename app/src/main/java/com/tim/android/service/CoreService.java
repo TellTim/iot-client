@@ -18,7 +18,7 @@ import com.tim.android.activity.AuthActivity;
 import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
 import com.tim.common.DeviceUtils;
-import com.tim.common.IDeviceSyncCallback;
+import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.INetConnectedCallback;
 import com.tim.common.Logger;
 import com.tim.iot.BuildConfig;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CoreService extends Service
         implements SharedPreferences.OnSharedPreferenceChangeListener,INetConnectedCallback,
-        IDeviceSyncCallback {
+        ISyncQrCodeCallback {
     private static final Logger logger = Logger.getLogger("CoreService");
 
     private static final int THREAD_POOL_CORE_SIZE = 4;
@@ -212,6 +212,11 @@ public class CoreService extends Service
     @Override
     public void onConnected() {
         syncRemoteAuth();
+        syncAuthConfirm();
+    }
+
+    private void syncAuthConfirm() {
+
     }
 
     /**
@@ -219,7 +224,7 @@ public class CoreService extends Service
      * @param accountInfo AccountInfo
      */
     @Override
-    public void onSyncAuthorized(AccountInfo accountInfo) {
+    public void onSyncQrCodeAuthorized(AccountInfo accountInfo) {
         //取消授权界面
     }
 
@@ -229,7 +234,7 @@ public class CoreService extends Service
      *
      */
     @Override
-    public void onSyncUnAuthorized(QrCodeInfo qrCodeInfo) {
+    public void onSyncQrCode(QrCodeInfo qrCodeInfo) {
         //todo 需验证断网恢复后,原本在授权界面，界面的销毁问题
         Intent activityIntent = new Intent(this, AuthActivity.class);
         activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
@@ -246,7 +251,7 @@ public class CoreService extends Service
      * @param e Exception
      */
     @Override
-    public void onSyncError(Exception e) {
+    public void onSyncQrCodeError(Exception e) {
 
     }
 }

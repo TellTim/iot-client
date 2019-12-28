@@ -1,8 +1,7 @@
 package com.tim.iot;
 
-import com.tim.android.service.CoreService;
 import com.tim.common.ICallback;
-import com.tim.common.IDeviceSyncCallback;
+import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.Respond;
 import com.tim.iot.common.AccountInfo;
 
@@ -16,5 +15,5 @@ public interface IIotClient {
     void checkLocalAuthorized(ICallback<String, Respond>callback);
     void getAccount();
     void saveAccount(AccountInfo accountInfo);
-    void syncRemoteAuthorized(IDeviceSyncCallback syncCallback);
+    void syncRemoteAuthorized(ISyncQrCodeCallback syncCallback);
 }

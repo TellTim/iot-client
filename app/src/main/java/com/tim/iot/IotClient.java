@@ -2,7 +2,7 @@ package com.tim.iot;
 
 import android.content.Context;
 import com.tim.common.ICallback;
-import com.tim.common.IDeviceSyncCallback;
+import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.Logger;
 import com.tim.common.Respond;
 import com.tim.iot.auth.AuthServer;
@@ -83,25 +83,25 @@ public class IotClient implements IIotClient {
     }
 
     @Override
-    public void syncRemoteAuthorized(IDeviceSyncCallback callback) {
+    public void syncRemoteAuthorized(ISyncQrCodeCallback callback) {
         registerServer.syncFromServer(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
             public void onSuccess(AccountInfo accountInfo) {
                 logger.d("syncRemoteAuthorized onSuccess accountInfo " + accountInfo.toString());
                 localServer.saveAuthToLocal(accountInfo.toString());
-                callback.onSyncAuthorized(accountInfo);
+                callback.onSyncQrCodeAuthorized(accountInfo);
             }
 
             @Override
             public void onFail(Respond respond) {
                 //只将未授权的回调出去，其他异常需修复处理
                 if (respond.getState().equals(Respond.State.BIND_NOT_EXIST)) {
-                    logger.d("syncRemoteAuthorized onSyncUnAuthorized "
+                    logger.d("syncRemoteAuthorized onSyncQrCode "
                             + ((QrCodeInfo) respond.getT()).getQrCode());
-                    callback.onSyncUnAuthorized((QrCodeInfo) respond.getT());
+                    callback.onSyncQrCode((QrCodeInfo) respond.getT());
                 } else {
                     //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
-                    callback.onSyncError(new Exception(((String) respond.getT())));
+                    callback.onSyncQrCodeError(new Exception(((String) respond.getT())));
                     logger.e("syncRemoteAuthorized onFail " + ((String) respond.getT()));
                 }
             }
@@ -110,7 +110,7 @@ public class IotClient implements IIotClient {
             public void onError(Throwable throwable) {
                 //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
                 logger.e("syncRemoteAuthorized onError " + throwable.getCause());
-                callback.onSyncError(new Exception(throwable.getMessage()));
+                callback.onSyncQrCodeError(new Exception(throwable.getMessage()));
             }
         });
     }
