@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import com.tim.android.activity.AuthActivity;
 import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
+import com.tim.common.AuthorizedEvent;
 import com.tim.common.DeviceUtils;
 import com.tim.common.INetConnectedCallback;
 import com.tim.common.ISyncAuthorizedCallback;
@@ -34,6 +35,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.greenrobot.eventbus.EventBus;
 
 /**
  * CoreService
@@ -204,11 +206,16 @@ public class CoreService extends Service
             String item) {
         logger.d("onSharedPreferenceChanged " + item);
         if (AppConst.AUTH_ACCOUNT_ITEM.equals(item)) {
+            // 表示状态由授权变更为未授权
             if (AppConst.UN_AUTH_ACCOUNT_VALUE.equals(
                     sharedPreferences.getString(AppConst.AUTH_ACCOUNT_ITEM,
                             AppConst.UN_AUTH_ACCOUNT_VALUE))) {
-                logger.d("未授权,触发跳转授权界面");
+                logger.d("监听到未授权变更,触发跳转授权界面");
                 startAuthView();
+            }else{
+                //表示状态由未授权变更为授权
+                logger.d("监听到授权变更,触发结束授权界面");
+                stopAuthView();
             }
         }
     }
@@ -227,19 +234,13 @@ public class CoreService extends Service
     }
 
     @Override
-    public void onSyncAuthorized(AccountInfo accountInfo) {
-        logger.d("onSyncAuthorized "+accountInfo.getAccount());
-    }
+    public void onSyncAuthorized(AccountInfo accountInfo) { }
 
     @Override
-    public void onSyncUnAuthorized() {
-        logger.d("onSyncUnAuthorized");
-    }
+    public void onSyncUnAuthorized() { }
 
     @Override
-    public void onSyncAuthorizedError(Exception e) {
-        logger.d("onSyncAuthorizedError "+e.getMessage());
-    }
+    public void onSyncAuthorizedError(Exception e) { }
 
     /**
      * 同步QrCode,远端已经授权通过
@@ -247,9 +248,7 @@ public class CoreService extends Service
      * @param accountInfo AccountInfo
      */
     @Override
-    public void onSyncQrCodeAuthorized(AccountInfo accountInfo) {
-        //取消授权界面
-    }
+    public void onSyncQrCodeAuthorized(AccountInfo accountInfo) {}
 
     /**
      * 同步QrCode
@@ -257,8 +256,7 @@ public class CoreService extends Service
      * @param qrCodeInfo QrCodeInfo
      */
     @Override
-    public void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo) {
-    }
+    public void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo) {}
 
     /**
      * 同步QrCode，出现异常，此处需上报给异常处理器。等候分析
@@ -269,9 +267,7 @@ public class CoreService extends Service
      * @param e Exception
      */
     @Override
-    public void onSyncQrCodeError(Exception e) {
-        logger.d("onSyncQrCodeError "+e.getMessage());
-    }
+    public void onSyncQrCodeError(Exception e) { }
 
     /**
      * 启动授权界面,有且仅当
@@ -279,8 +275,14 @@ public class CoreService extends Service
      * 监听sharedPref的变更为未授权状态时触发
      */
     private void startAuthView() {
+        logger.d("startAuthView");
         Intent activityIntent = new Intent(this, AuthActivity.class);
         activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(activityIntent);
+    }
+
+    private void stopAuthView() {
+        logger.d("stopAuthView");
+        EventBus.getDefault().post(new AuthorizedEvent());
     }
 }

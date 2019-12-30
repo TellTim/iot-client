@@ -19,7 +19,7 @@ public class LocalServer implements ILocalServer {
     }
 
     @Override
-    public String getAccount() {
+    public synchronized String getAccount() {
         SharedPreferences sharedPreferences =
                 this.context.getSharedPreferences(AppConst.AUTH_SHARED_PREF, Context.MODE_PRIVATE);
         String authValue = sharedPreferences.getString(AppConst.AUTH_ACCOUNT_ITEM,
@@ -32,10 +32,10 @@ public class LocalServer implements ILocalServer {
     }
 
     @Override
-    public synchronized void saveAuthToLocal(String account) {
+    public synchronized void saveAuthToLocal(String accountInfo) {
         SharedPreferences sharedPreferences =
                 this.context.getSharedPreferences(AppConst.AUTH_SHARED_PREF, Context.MODE_PRIVATE);
-        sharedPreferences.edit().putString(AppConst.AUTH_ACCOUNT_ITEM, account).apply();
+        sharedPreferences.edit().putString(AppConst.AUTH_ACCOUNT_ITEM, accountInfo).apply();
     }
 
     @Override
@@ -43,8 +43,11 @@ public class LocalServer implements ILocalServer {
         //恢复默认的标记
         SharedPreferences sharedPreferences =
                 this.context.getSharedPreferences(AppConst.AUTH_SHARED_PREF, Context.MODE_PRIVATE);
-        sharedPreferences.edit()
-                .putString(AppConst.AUTH_ACCOUNT_ITEM, AppConst.UN_AUTH_ACCOUNT_VALUE)
-                .apply();
+        if (!sharedPreferences.getString(AppConst.AUTH_ACCOUNT_ITEM, AppConst.UN_AUTH_ACCOUNT_VALUE)
+                .equals(AppConst.UN_AUTH_ACCOUNT_VALUE)) {
+            sharedPreferences.edit()
+                    .putString(AppConst.AUTH_ACCOUNT_ITEM, AppConst.UN_AUTH_ACCOUNT_VALUE)
+                    .apply();
+        }
     }
 }

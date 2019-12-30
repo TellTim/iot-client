@@ -13,7 +13,7 @@ public interface ILocalServer {
 
     String getAccount();
 
-    void saveAuthToLocal(String account);
+    void saveAuthToLocal(String accountInfo);
 
     void clearAuthorized();
 }

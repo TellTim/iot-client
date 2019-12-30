@@ -59,11 +59,6 @@ public class IotClient implements IIotClient {
     }
 
     @Override
-    public void saveAccount(AccountInfo accountInfo) {
-
-    }
-
-    @Override
     public void syncAuthorized(ISyncAuthorizedCallback callback) {
         this.registerServer.syncAuthorized(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
@@ -76,6 +71,7 @@ public class IotClient implements IIotClient {
             @Override
             public void onFail(Respond respond) {
                 if (Respond.State.BIND_NOT_EXIST.equals(respond.getState())){
+                    logger.d("syncAuthorized onFail bind not exist");
                     localServer.clearAuthorized();
                     callback.onSyncUnAuthorized();
                 }else{
@@ -85,6 +81,7 @@ public class IotClient implements IIotClient {
 
             @Override
             public void onError(Throwable throwable) {
+                logger.e("syncAuthorized onError "+throwable.getMessage());
                 callback.onSyncAuthorizedError(new Exception(throwable.getMessage()));
             }
         });
@@ -95,7 +92,7 @@ public class IotClient implements IIotClient {
         this.registerServer.syncQrCode(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
             public void onSuccess(AccountInfo accountInfo) {
-                logger.d("syncRemoteAuthorized onSuccess accountInfo " + accountInfo.toString());
+                logger.d("syncQrCode Authorized accountInfo " + accountInfo.toString());
                 localServer.saveAuthToLocal(accountInfo.toString());
                 callback.onSyncQrCodeAuthorized(accountInfo);
             }
@@ -104,20 +101,20 @@ public class IotClient implements IIotClient {
             public void onFail(Respond respond) {
                 //只将未授权的回调出去，其他异常需修复处理
                 if (respond.getState().equals(Respond.State.BIND_NOT_EXIST)) {
-                    logger.d("syncRemoteAuthorized onSyncQrCodeInfo "
+                    logger.d("syncQrCode onSyncQrCodeInfo "
                             + ((QrCodeInfo) respond.getT()).getQrCode());
                     callback.onSyncQrCodeInfo((QrCodeInfo) respond.getT());
                 } else {
                     //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
                     callback.onSyncQrCodeError(new Exception(((String) respond.getT())));
-                    logger.e("syncRemoteAuthorized onFail " + respond.getT());
+                    logger.e("syncQrCode onFail " + respond.getT());
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
                 //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
-                logger.e("syncRemoteAuthorized onError " + throwable.getCause());
+                logger.e("syncQrCode onError " + throwable.getCause());
                 callback.onSyncQrCodeError(new Exception(throwable.getMessage()));
             }
         });

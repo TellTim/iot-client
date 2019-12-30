@@ -2,7 +2,6 @@ package com.tim.iot;
 
 import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
-import com.tim.iot.common.AccountInfo;
 
 /**
  * IIotClient
@@ -12,8 +11,6 @@ import com.tim.iot.common.AccountInfo;
  */
 public interface IIotClient {
     String getAccount();
-
-    void saveAccount(AccountInfo accountInfo);
 
     void syncAuthorized(ISyncAuthorizedCallback callback);
 
