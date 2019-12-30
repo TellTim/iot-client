@@ -1,0 +1,6 @@
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">192.168.1.173</domain>
+        <domain includeSubdomains="true">as.hdayun.com</domain>
+    </domain-config>
+</network-security-config>

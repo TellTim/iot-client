@@ -1,19 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.tim.android.activity.AuthActivity">
+    android:background="@android:color/white"
+    android:orientation="vertical">
 
     <TextView
-        android:id="@+id/tv_info"
+        style="@style/H5"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Wait auth"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_height="@dimen/dp_64"
+        android:gravity="center"
+        android:paddingStart="@dimen/dp_40"
+        android:paddingEnd="@dimen/dp_40"
+        android:text="绑定激活" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layoutDirection="rtl"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/dp_40"
+        android:paddingEnd="@dimen/dp_40">
+
+        <FrameLayout
+            android:layout_width="@dimen/dp_160"
+            android:layout_height="@dimen/dp_160"
+            android:layout_marginTop="@dimen/dp_24"
+            android:layout_marginEnd="@dimen/dp_80"
+            android:background="@drawable/bg_qrcode">
+
+            <ImageView
+                android:id="@+id/img_qrcode"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <ProgressBar
+                android:id="@+id/qrcode_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                tools:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/error_field"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="@dimen/dp_40"
+                    android:layout_height="@dimen/dp_40"
+                    android:src="@drawable/ic_reload_24dp" />
+
+                <TextView
+                    android:id="@+id/tv_error"
+                    style="@style/Body14.Grey"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/dp_12"
+                    android:layout_marginTop="@dimen/dp_12"
+                    android:layout_marginEnd="@dimen/dp_12"
+                    android:gravity="center"
+                    tools:text="获取二维码失败，请重试" />
+
+            </LinearLayout>
+        </FrameLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="vertical"
+                android:paddingTop="@dimen/dp_24"
+                android:paddingBottom="@dimen/dp_24">
+
+                <TextView
+                    style="@style/H4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/dp_8"
+                    android:text="1. 安装【Iot助手】" />
+
+                <TextView
+                    style="@style/Body14.Grey"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="您可以扫描右侧的二维码下载并安装【Iot助手】app" />
+
+                <TextView
+                    style="@style/H4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/dp_40"
+                    android:layout_marginBottom="@dimen/dp_8"
+                    android:text="2. 激活设备" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/Body14.Grey"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:text="注册并登录【Iot助手】app，使用【Iot助手】扫描右侧二维码绑定即可。"
+                    android:textAlignment="textStart"
+                    app:lineHeight="@dimen/dp_20" />
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+</LinearLayout>
