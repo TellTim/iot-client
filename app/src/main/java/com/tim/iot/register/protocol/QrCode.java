@@ -47,16 +47,6 @@ public class QrCode {
     public static class Result extends BaseResult {
         @SerializedName("qrCodeInfo")
         private QrCodeInfo qrCodeInfo;
-        @SerializedName("accountInfo")
-        private AccountInfo accountInfo;
-
-        public AccountInfo getAccountInfo() {
-            return accountInfo;
-        }
-
-        public void setAccountInfo(AccountInfo accountInfo) {
-            this.accountInfo = accountInfo;
-        }
 
         public QrCodeInfo getQrCodeInfo() {
             return qrCodeInfo;

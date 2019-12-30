@@ -61,26 +61,7 @@ public class Register {
         }
     }
 
-    public static class Result extends BaseResult {
-        @SerializedName("qrCodeInfo")
-        private QrCodeInfo qrCodeInfo;
-        @SerializedName("accountInfo")
-        private AccountInfo accountInfo;
+    public static class Result extends BaseResult{
 
-        public AccountInfo getAccountInfo() {
-            return accountInfo;
-        }
-
-        public void setAccountInfo(AccountInfo accountInfo) {
-            this.accountInfo = accountInfo;
-        }
-
-        public QrCodeInfo getQrCodeInfo() {
-            return qrCodeInfo;
-        }
-
-        public void setQrCodeInfo(QrCodeInfo qrCodeInfo) {
-            this.qrCodeInfo = qrCodeInfo;
-        }
     }
 }

@@ -7,7 +7,6 @@ import com.tim.common.Respond;
 import com.tim.iot.BuildConfig;
 import com.tim.iot.common.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
-import com.tim.iot.common.QrCodeInfo;
 import com.tim.iot.register.api.IRegisterApi;
 import com.tim.iot.register.protocol.QrCode;
 import com.tim.iot.register.protocol.Register;
@@ -69,11 +68,17 @@ public class RegisterService implements IRegisterServer {
                 if (Respond.State.BIND_EXIST.getCode().equals(result.getCode())) {
                     callback.onSuccess(result.getAccountInfo());
                 } else if (Respond.State.BIND_NOT_EXIST.getCode().equals(result.getCode())) {
-                    callback.onFail(new Respond<QrCodeInfo>(Respond.State.BIND_NOT_EXIST, result.getQrCodeInfo()));
-                } else if(Respond.State.TYPE_INVALID.getCode().equals(result.getCode())){
-                    callback.onFail(new Respond<String>(Respond.State.TYPE_INVALID, result.getCode()+" "+result.getData()));
-                }else{
-                    callback.onFail(new Respond<String>(Respond.State.ERROR, result.getCode()+" "+result.getData()));
+                    callback.onFail(new Respond<>(Respond.State.BIND_NOT_EXIST,
+                            result.getQrCodeInfo()));
+                } else if (Respond.State.TYPE_INVALID.getCode().equals(result.getCode())) {
+                    callback.onFail(new Respond<>(Respond.State.TYPE_INVALID,
+                            result.getCode() + " " + result.getData()));
+                } else if (Respond.State.DEVICE_NOT_EXIST.getCode().equals(result.getCode())) {
+                    callback.onFail(new Respond<>(Respond.State.DEVICE_NOT_EXIST,
+                            result.getCode() + " " + result.getData()));
+                } else {
+                    callback.onFail(new Respond<>(Respond.State.ERROR,
+                            result.getCode() + " " + result.getData()));
                 }
             }
 
@@ -106,11 +111,12 @@ public class RegisterService implements IRegisterServer {
                 if (Respond.State.BIND_EXIST.getCode().equals(result.getCode())) {
                     callback.onSuccess(result.getAccountInfo());
                 } else if (Respond.State.BIND_NOT_EXIST.getCode().equals(result.getCode())) {
-                    callback.onFail(new Respond<QrCodeInfo>(Respond.State.BIND_NOT_EXIST, result.getQrCodeInfo()));
-                } else if(Respond.State.TYPE_INVALID.getCode().equals(result.getCode())){
-                    callback.onFail(new Respond<String>(Respond.State.TYPE_INVALID, result.getCode()+" "+result.getData()));
-                }else{
-                    callback.onFail(new Respond<String>(Respond.State.ERROR, result.getCode()+" "+result.getData()));
+                    callback.onFail(
+                            new Respond<>(Respond.State.BIND_NOT_EXIST,
+                                    Respond.State.BIND_NOT_EXIST.getValue()));
+                } else {
+                    callback.onFail(new Respond<>(Respond.State.ERROR,
+                            result.getCode() + " " + result.getData()));
                 }
             }
 

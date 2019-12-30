@@ -12,6 +12,6 @@ import com.tim.iot.common.QrCodeInfo;
  */
 public interface ISyncQrCodeCallback {
     void onSyncQrCodeAuthorized(AccountInfo accountInfo);
-    void onSyncQrCode(QrCodeInfo qrCodeInfo);
+    void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo);
     void onSyncQrCodeError(Exception e);
 }

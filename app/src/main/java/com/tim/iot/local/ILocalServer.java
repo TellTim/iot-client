@@ -14,4 +14,6 @@ public interface ILocalServer {
     void checkAuthFromLocal(ICallback<String, Respond> callBack);
 
     void saveAuthToLocal(String account);
+
+    void clearAuthorized();
 }

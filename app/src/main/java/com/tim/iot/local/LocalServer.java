@@ -35,9 +35,19 @@ public class LocalServer implements ILocalServer {
     }
 
     @Override
-    public void saveAuthToLocal(String account) {
+    public synchronized void saveAuthToLocal(String account) {
         SharedPreferences sharedPreferences =
                 this.context.getSharedPreferences(AppConst.AUTH_SHARED_PREF, Context.MODE_PRIVATE);
         sharedPreferences.edit().putString(AppConst.AUTH_ACCOUNT_ITEM,account).apply();
+    }
+
+    @Override
+    public synchronized void clearAuthorized() {
+        //恢复默认的标记
+        SharedPreferences sharedPreferences =
+                this.context.getSharedPreferences(AppConst.AUTH_SHARED_PREF, Context.MODE_PRIVATE);
+        sharedPreferences.edit()
+                .putString(AppConst.AUTH_ACCOUNT_ITEM, AppConst.UN_AUTH_ACCOUNT_VALUE)
+                .apply();
     }
 }

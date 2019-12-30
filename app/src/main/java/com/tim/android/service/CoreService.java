@@ -179,11 +179,6 @@ public class CoreService extends Service
         }
     }
 
-    private void syncRemoteAuth() {
-        logger.d("syncRemoteAuth: 开始同步服务端授权状态");
-        iotClient.syncAuthorized(this);
-    }
-
     private void unRegisterNetListener() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             if (networkCallback != null) {
@@ -203,7 +198,11 @@ public class CoreService extends Service
             String item) {
         logger.d("onSharedPreferenceChanged " + item);
         if (AppConst.AUTH_ACCOUNT_ITEM.equals(item)) {
-
+            if (AppConst.UN_AUTH_ACCOUNT_VALUE.equals(
+                    sharedPreferences.getString(AppConst.AUTH_ACCOUNT_ITEM,
+                            AppConst.UN_AUTH_ACCOUNT_VALUE))){
+                logger.d("未授权,触发跳转授权界面");
+            }
         }
     }
 
@@ -212,12 +211,29 @@ public class CoreService extends Service
      */
     @Override
     public void onConnected() {
-        syncAuthAuthorized();
+        syncRemoteAuth();
     }
 
-    private void syncAuthAuthorized() {
+    private void syncRemoteAuth() {
+        logger.d("syncRemoteAuth: 开始同步服务端授权状态");
         iotClient.syncAuthorized(this);
     }
+
+    @Override
+    public void onSyncAuthorized(AccountInfo accountInfo) {
+
+    }
+
+    @Override
+    public void onSyncUnAuthorized() {
+        logger.d("onSyncUnAuthorized");
+    }
+
+    @Override
+    public void onSyncError(Exception e) {
+
+    }
+
 
     /**
      * 同步授权状态,远端已经授权通过
@@ -234,7 +250,7 @@ public class CoreService extends Service
      *
      */
     @Override
-    public void onSyncQrCode(QrCodeInfo qrCodeInfo) {
+    public void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo) {
         //todo 需验证断网恢复后,原本在授权界面，界面的销毁问题
         Intent activityIntent = new Intent(this, AuthActivity.class);
         activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
@@ -255,18 +271,5 @@ public class CoreService extends Service
 
     }
 
-    @Override
-    public void onSyncAuthorized(AccountInfo accountInfo) {
 
-    }
-
-    @Override
-    public void onSyncUnAuthorized() {
-
-    }
-
-    @Override
-    public void onSyncError(Exception e) {
-
-    }
 }

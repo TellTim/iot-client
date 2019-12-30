@@ -1,5 +1,8 @@
 package com.tim.iot.register.protocol;
 
+import com.google.gson.annotations.SerializedName;
+import com.tim.iot.common.AccountInfo;
+
 /**
  * BaseResult
  *
@@ -9,6 +12,17 @@ package com.tim.iot.register.protocol;
 public class BaseResult {
     private String code;
     private String data;
+    @SerializedName("accountInfo")
+    private AccountInfo accountInfo;
+
+    public AccountInfo getAccountInfo() {
+        return accountInfo;
+    }
+
+    public void setAccountInfo(AccountInfo accountInfo) {
+        this.accountInfo = accountInfo;
+    }
+
     public String getData() {
         return data;
     }

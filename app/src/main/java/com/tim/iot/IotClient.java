@@ -85,12 +85,34 @@ public class IotClient implements IIotClient {
 
     @Override
     public void syncAuthorized(ISyncAuthorizedCallback callback) {
+        this.registerServer.syncAuthorized(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
+            @Override
+            public void onSuccess(AccountInfo accountInfo) {
+                logger.d("syncAuthorized onSuccess accountInfo " + accountInfo.toString());
+                localServer.saveAuthToLocal(accountInfo.toString());
+                callback.onSyncAuthorized(accountInfo);
+            }
 
+            @Override
+            public void onFail(Respond respond) {
+                if (Respond.State.BIND_NOT_EXIST.equals(respond.getState())){
+                    localServer.clearAuthorized();
+                    callback.onSyncUnAuthorized();
+                }else{
+                    callback.onSyncError(new Exception(respond.getState().getValue()));
+                }
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                callback.onSyncError(new Exception(throwable.getMessage()));
+            }
+        });
     }
 
     @Override
     public void syncQrCode(ISyncQrCodeCallback callback) {
-        registerServer.syncQrCode(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
+        this.registerServer.syncQrCode(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
             public void onSuccess(AccountInfo accountInfo) {
                 logger.d("syncRemoteAuthorized onSuccess accountInfo " + accountInfo.toString());
@@ -102,13 +124,13 @@ public class IotClient implements IIotClient {
             public void onFail(Respond respond) {
                 //只将未授权的回调出去，其他异常需修复处理
                 if (respond.getState().equals(Respond.State.BIND_NOT_EXIST)) {
-                    logger.d("syncRemoteAuthorized onSyncQrCode "
+                    logger.d("syncRemoteAuthorized onSyncQrCodeInfo "
                             + ((QrCodeInfo) respond.getT()).getQrCode());
-                    callback.onSyncQrCode((QrCodeInfo) respond.getT());
+                    callback.onSyncQrCodeInfo((QrCodeInfo) respond.getT());
                 } else {
                     //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
                     callback.onSyncQrCodeError(new Exception(((String) respond.getT())));
-                    logger.e("syncRemoteAuthorized onFail " + ((String) respond.getT()));
+                    logger.e("syncRemoteAuthorized onFail " + respond.getT());
                 }
             }
 
