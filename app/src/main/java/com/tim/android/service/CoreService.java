@@ -18,9 +18,9 @@ import com.tim.android.activity.AuthActivity;
 import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
 import com.tim.common.DeviceUtils;
+import com.tim.common.INetConnectedCallback;
 import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
-import com.tim.common.INetConnectedCallback;
 import com.tim.common.Logger;
 import com.tim.iot.BuildConfig;
 import com.tim.iot.IIotClient;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2019/12/24 9:52
  */
 public class CoreService extends Service
-        implements SharedPreferences.OnSharedPreferenceChangeListener,INetConnectedCallback,
+        implements SharedPreferences.OnSharedPreferenceChangeListener, INetConnectedCallback,
         ISyncQrCodeCallback, ISyncAuthorizedCallback {
     private static final Logger logger = Logger.getLogger("CoreService");
 
@@ -72,16 +72,6 @@ public class CoreService extends Service
         initSharedPref();
     }
 
-    private void initSharedPref() {
-        this.authSharedPref = getSharedPreferences(AppConst.AUTH_SHARED_PREF, MODE_PRIVATE);
-        if ("".equals(authSharedPref.getString(AppConst.AUTH_ACCOUNT_ITEM, ""))) {
-            authSharedPref.edit()
-                    .putString(AppConst.AUTH_ACCOUNT_ITEM, AppConst.UN_AUTH_ACCOUNT_VALUE)
-                    .apply();
-        }
-        authSharedPref.registerOnSharedPreferenceChangeListener(this);
-    }
-
     private void initClient() {
         ExecutorService executorService =
                 new ThreadPoolExecutor(THREAD_POOL_CORE_SIZE, THREAD_POOL_MAX_SIZE,
@@ -92,6 +82,22 @@ public class CoreService extends Service
                         DeviceUtils.getImei(context, BuildConfig.PRODUCT_TYPE),
                         BuildConfig.PRODUCT_TYPE);
         this.iotClient = IotClient.getInstance(this, executorService, deviceInfo);
+    }
+
+    private void initSharedPref() {
+        this.authSharedPref = getSharedPreferences(AppConst.AUTH_SHARED_PREF, MODE_PRIVATE);
+        if ("".equals(authSharedPref.getString(AppConst.AUTH_ACCOUNT_ITEM, ""))) {
+            authSharedPref.edit()
+                    .putString(AppConst.AUTH_ACCOUNT_ITEM, AppConst.UN_AUTH_ACCOUNT_VALUE)
+                    .apply();
+        }
+        authSharedPref.registerOnSharedPreferenceChangeListener(this);
+        if (AppConst.UN_AUTH_ACCOUNT_VALUE.equals(
+                authSharedPref.getString(AppConst.AUTH_ACCOUNT_ITEM,
+                        AppConst.UN_AUTH_ACCOUNT_VALUE))) {
+            logger.d("initSharedPref 触发跳转授权界面");
+            startAuthView();
+        }
     }
 
     @Override
@@ -118,7 +124,7 @@ public class CoreService extends Service
                     @Override
                     public void onAvailable(@NonNull Network network) {
                         logger.d("onAvailable");
-                       callback.onConnected();
+                        callback.onConnected();
                     }
 
                     @Override
@@ -200,14 +206,15 @@ public class CoreService extends Service
         if (AppConst.AUTH_ACCOUNT_ITEM.equals(item)) {
             if (AppConst.UN_AUTH_ACCOUNT_VALUE.equals(
                     sharedPreferences.getString(AppConst.AUTH_ACCOUNT_ITEM,
-                            AppConst.UN_AUTH_ACCOUNT_VALUE))){
+                            AppConst.UN_AUTH_ACCOUNT_VALUE))) {
                 logger.d("未授权,触发跳转授权界面");
+                startAuthView();
             }
         }
     }
 
     /**
-     *  网络连接后,同步后端的设备授权状态
+     * 网络连接后,同步后端的设备授权状态
      */
     @Override
     public void onConnected() {
@@ -221,7 +228,7 @@ public class CoreService extends Service
 
     @Override
     public void onSyncAuthorized(AccountInfo accountInfo) {
-
+        logger.d("onSyncAuthorized "+accountInfo.getAccount());
     }
 
     @Override
@@ -230,13 +237,13 @@ public class CoreService extends Service
     }
 
     @Override
-    public void onSyncError(Exception e) {
-
+    public void onSyncAuthorizedError(Exception e) {
+        logger.d("onSyncAuthorizedError "+e.getMessage());
     }
 
-
     /**
-     * 同步授权状态,远端已经授权通过
+     * 同步QrCode,远端已经授权通过
+     *
      * @param accountInfo AccountInfo
      */
     @Override
@@ -245,31 +252,35 @@ public class CoreService extends Service
     }
 
     /**
-     * 同步授权状态，设备并未授权
-     * @param qrCodeInfo QrCodeInfo
+     * 同步QrCode
      *
+     * @param qrCodeInfo QrCodeInfo
      */
     @Override
     public void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo) {
-        //todo 需验证断网恢复后,原本在授权界面，界面的销毁问题
-        Intent activityIntent = new Intent(this, AuthActivity.class);
-        activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK );
-        startActivity(activityIntent);
-        //开启websocket,连接成功后,跳转到授权界面，连接失败则通过埋点，将异常上报给后端等待分析
-        //通过bindService的方式，用户在授权过期后，点击重新获取二维码
     }
 
     /**
-     * 同步授权状态，出现异常，此处需上报给异常处理器。等候分析
+     * 同步QrCode，出现异常，此处需上报给异常处理器。等候分析
      * 有以下异常
-     *  设备类型错误,
-     *  与后端交互协议错误
+     * 设备类型错误,
+     * 与后端交互协议错误
+     *
      * @param e Exception
      */
     @Override
     public void onSyncQrCodeError(Exception e) {
-
+        logger.d("onSyncQrCodeError "+e.getMessage());
     }
 
-
+    /**
+     * 启动授权界面,有且仅当
+     * 开机检测本地sharedPref中的授权标记未为授权
+     * 监听sharedPref的变更为未授权状态时触发
+     */
+    private void startAuthView() {
+        Intent activityIntent = new Intent(this, AuthActivity.class);
+        activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(activityIntent);
+    }
 }

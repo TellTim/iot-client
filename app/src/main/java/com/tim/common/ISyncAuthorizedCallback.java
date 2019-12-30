@@ -13,5 +13,5 @@ import com.tim.iot.common.QrCodeInfo;
 public interface ISyncAuthorizedCallback {
     void onSyncAuthorized(AccountInfo accountInfo);
     void onSyncUnAuthorized();
-    void onSyncError(Exception e);
+    void onSyncAuthorizedError(Exception e);
 }

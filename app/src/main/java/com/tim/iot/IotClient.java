@@ -54,28 +54,8 @@ public class IotClient implements IIotClient {
     }
 
     @Override
-    public void checkLocalAuthorized(ICallback<String, Respond> callback) {
-        logger.d("checkLocalAuthorized");
-        localServer.checkAuthFromLocal(new ICallback<String, Respond>() {
-            @Override
-            public void onSuccess(String account) {
-                callback.onSuccess(account);
-            }
-
-            @Override
-            public void onFail(Respond respond) {
-                callback.onFail(respond);
-            }
-
-            @Override public void onError(Throwable throwable) {
-                callback.onError(throwable);
-            }
-        });
-    }
-
-    @Override
-    public void getAccount() {
-
+    public String getAccount() {
+        return localServer.getAccount();
     }
 
     @Override
@@ -99,13 +79,13 @@ public class IotClient implements IIotClient {
                     localServer.clearAuthorized();
                     callback.onSyncUnAuthorized();
                 }else{
-                    callback.onSyncError(new Exception(respond.getState().getValue()));
+                    callback.onSyncAuthorizedError(new Exception(respond.getState().getValue()));
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
-                callback.onSyncError(new Exception(throwable.getMessage()));
+                callback.onSyncAuthorizedError(new Exception(throwable.getMessage()));
             }
         });
     }

@@ -11,7 +11,7 @@ import com.tim.common.Respond;
  */
 public interface ILocalServer {
 
-    void checkAuthFromLocal(ICallback<String, Respond> callBack);
+    String getAccount();
 
     void saveAuthToLocal(String account);
 
