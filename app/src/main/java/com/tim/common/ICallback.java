@@ -7,7 +7,5 @@ package com.tim.common;
  * @date 2019/12/24 19:44
  */
 public interface ICallback<S, F> extends ISimpleCallback<S,F>{
-
-
     void onError(Throwable throwable);
 }

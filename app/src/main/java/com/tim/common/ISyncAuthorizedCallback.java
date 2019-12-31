@@ -1,7 +1,6 @@
 package com.tim.common;
 
 import com.tim.iot.common.AccountInfo;
-import com.tim.iot.common.QrCodeInfo;
 
 /**
  * ISyncAuthorizedCallback

@@ -1,5 +1,6 @@
 package com.tim.iot;
 
+import com.tim.common.IConnectAuthServerCallback;
 import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
 
@@ -14,5 +15,6 @@ public interface IIotClient {
 
     void syncAuthorized(ISyncAuthorizedCallback callback);
 
-    void syncQrCode(ISyncQrCodeCallback callback);
+    void syncQrCode(ISyncQrCodeCallback syncQrCodeCallback);
+
 }

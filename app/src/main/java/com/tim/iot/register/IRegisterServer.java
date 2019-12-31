@@ -12,7 +12,7 @@ import com.tim.iot.common.DeviceInfo;
  * @date 2019/12/27 11:09
  */
 public interface IRegisterServer {
-    void syncAuthorized(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond>callback);
-    void syncQrCode(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond>callback);
+    void syncAuthorized(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond> callback);
 
+    void syncQrCode(DeviceInfo deviceInfo, ICallback<AccountInfo, Respond> callback);
 }

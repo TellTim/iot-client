@@ -1,5 +1,7 @@
 package com.tim.iot.auth;
 
+import com.tim.common.IConnectAuthServerCallback;
+
 /**
  * IAuthServer
  *
@@ -7,5 +9,5 @@ package com.tim.iot.auth;
  * @date 2019/12/24 19:45
  */
 public interface IAuthServer {
-    void work();
+    void connect(IConnectAuthServerCallback connectAuthServerCallback);
 }

@@ -38,11 +38,10 @@
                 android:layout_height="match_parent" />
 
             <ProgressBar
-                android:id="@+id/qrcode_progress"
+                android:id="@+id/qr_code_progress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                tools:visibility="gone" />
+                android:layout_gravity="center"/>
 
             <LinearLayout
                 android:id="@+id/error_field"

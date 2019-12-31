@@ -19,6 +19,7 @@ import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
 import com.tim.common.AuthorizedEvent;
 import com.tim.common.DeviceUtils;
+import com.tim.common.IConnectAuthServerCallback;
 import com.tim.common.INetConnectedCallback;
 import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
@@ -45,7 +46,7 @@ import org.greenrobot.eventbus.EventBus;
  */
 public class CoreService extends Service
         implements SharedPreferences.OnSharedPreferenceChangeListener, INetConnectedCallback,
-        ISyncQrCodeCallback, ISyncAuthorizedCallback {
+        ISyncQrCodeCallback, ISyncAuthorizedCallback,IServiceHandler {
     private static final Logger logger = Logger.getLogger("CoreService");
 
     private static final int THREAD_POOL_CORE_SIZE = 4;
@@ -57,12 +58,13 @@ public class CoreService extends Service
     private SharedPreferences authSharedPref;
     private ConnectivityManager.NetworkCallback networkCallback;
     private BroadcastReceiver netConnectivityReceiver;
-
+    private volatile IViewHandler viewHandler;
+    private ExecutorService executorService;
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         logger.d("onBind");
-        return null;
+        return new Binder();
     }
 
     @Override
@@ -75,7 +77,7 @@ public class CoreService extends Service
     }
 
     private void initClient() {
-        ExecutorService executorService =
+        this.executorService =
                 new ThreadPoolExecutor(THREAD_POOL_CORE_SIZE, THREAD_POOL_MAX_SIZE,
                         THREAD_POOL_KEEP_ALIVE_TIME,
                         TIME_UNIT, new LinkedBlockingDeque<>(), (ThreadFactory) Thread::new);
@@ -248,7 +250,7 @@ public class CoreService extends Service
      * @param accountInfo AccountInfo
      */
     @Override
-    public void onSyncQrCodeAuthorized(AccountInfo accountInfo) {}
+    public void onSyncQrCodeAuthorized(AccountInfo accountInfo) { }
 
     /**
      * 同步QrCode
@@ -256,7 +258,11 @@ public class CoreService extends Service
      * @param qrCodeInfo QrCodeInfo
      */
     @Override
-    public void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo) {}
+    public void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo) {
+        if (viewHandler!=null){
+            viewHandler.onShowQrCode(qrCodeInfo.getQrCode());
+        }
+    }
 
     /**
      * 同步QrCode，出现异常，此处需上报给异常处理器。等候分析
@@ -267,7 +273,11 @@ public class CoreService extends Service
      * @param e Exception
      */
     @Override
-    public void onSyncQrCodeError(Exception e) { }
+    public void onSyncQrCodeError(Exception e) {
+        if (viewHandler!=null){
+            viewHandler.onShowNetError();
+        }
+    }
 
     /**
      * 启动授权界面,有且仅当
@@ -284,5 +294,35 @@ public class CoreService extends Service
     private void stopAuthView() {
         logger.d("stopAuthView");
         EventBus.getDefault().post(new AuthorizedEvent());
+    }
+
+    /**
+     * view bindService的方式,触发操作service中的syncQrCode
+     * @param viewHandler IViewHandler
+     */
+    @Override
+    public void registerViewHandler(IViewHandler viewHandler) {
+        logger.d("registerViewHandler");
+        this.viewHandler = viewHandler;
+        this.iotClient.syncQrCode(this);
+    }
+
+    @Override
+    public void unRegisterViewHandler(IViewHandler viewHandler) {
+        logger.d("unRegisterViewHandler");
+        if (this.viewHandler == viewHandler) {
+            this.viewHandler = null;
+        }
+    }
+
+    @Override
+    public void retryHandler() {
+        this.iotClient.syncQrCode(this);
+    }
+
+    public class Binder extends android.os.Binder {
+        public IServiceHandler getServiceHandler() {
+            return CoreService.this;
+        }
     }
 }

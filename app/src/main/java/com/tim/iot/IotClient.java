@@ -2,6 +2,7 @@ package com.tim.iot;
 
 import android.content.Context;
 import com.tim.common.ICallback;
+import com.tim.common.IConnectAuthServerCallback;
 import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.Logger;
