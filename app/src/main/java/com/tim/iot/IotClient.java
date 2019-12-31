@@ -105,6 +105,32 @@ public class IotClient implements IIotClient {
                     logger.d("syncQrCode onSyncQrCodeInfo "
                             + ((QrCodeInfo) respond.getT()).getQrCode());
                     callback.onSyncQrCodeInfo((QrCodeInfo) respond.getT());
+                    executorService.execute(()->{
+                        authServer.connect(new IConnectAuthServerCallback() {
+                            @Override
+                            public void onConnectSuccess() {
+
+                            }
+
+                            @Override
+                            public void onAuthConfirm() {
+                                AccountInfo accountInfo = new AccountInfo();;
+                                accountInfo.setAccount("15013670707");
+                                accountInfo.setCreateAt(21561641633L);
+                                localServer.saveAuthToLocal(accountInfo.toString());
+                                callback.onSyncQrCodeAuthorized(accountInfo);
+                            }
+
+                            @Override public void onTimeOut() {
+
+                            }
+
+                            @Override public void onConnectError(Exception e) {
+
+                            }
+                        });
+                    });
+
                 } else {
                     //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
                     callback.onSyncQrCodeError(new Exception(((String) respond.getT())));

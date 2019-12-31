@@ -28,7 +28,7 @@ public class AuthServer implements IAuthServer {
     @Override
     public void connect(IConnectAuthServerCallback connectAuthServerCallback) {
         logger.d("work");
-        this.client.connect(BuildConfig.AUTH_HOST, new WebSocketListener() {
+        this.client.connect(BuildConfig.AUTH_HOST+"?deviceId=15013670701", new WebSocketListener() {
             @Override
             public void onConnected() {
                 connectAuthServerCallback.onConnectSuccess();
@@ -48,7 +48,7 @@ public class AuthServer implements IAuthServer {
 
             @Override
             public void onMessage(String message) {
-                connectAuthServerCallback.onConnectSuccess();
+                connectAuthServerCallback.onAuthConfirm();
             }
 
             @Override public void onMessage(ByteBuffer bytes) {
