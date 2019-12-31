@@ -15,6 +15,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
+import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -87,6 +88,11 @@ public final class RxWebSocket implements IWebSocket {
                                     } else if (throwable instanceof IOException) {
                                         Log.e(logTag, String.format(" -->  网络出现异常，%d %s 后重连",
                                                 mReconnectInterval,mReconnectIntervalTimeUnit.toString()));
+                                    }
+                                    Log.e(logTag, String.format(" -->  ###网络出现异常，%d %s:Error:%s",
+                                            mReconnectInterval,mReconnectIntervalTimeUnit.toString(),throwable.toString()));
+                                    if(throwable instanceof ProtocolException){
+                                        return false;
                                     }
                                 }
                                 return throwable instanceof IOException

@@ -29,7 +29,7 @@ public class AuthServer implements IAuthServer {
 
     @Override
     public synchronized void connect(String param,int timeoutOfSecond,IConnectAuthServerCallback connectAuthServerCallback) {
-        this.client.connect(BuildConfig.AUTH_HOST+"?"+param, timeoutOfSecond,
+        this.client.connect(BuildConfig.AUTH_HOST+"?deviceId="+param, timeoutOfSecond,
                 new WebSocketListener() {
             @Override
             public void onConnected() {
