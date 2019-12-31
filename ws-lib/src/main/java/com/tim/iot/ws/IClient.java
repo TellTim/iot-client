@@ -8,7 +8,7 @@ package com.tim.iot.ws;
  */
 public interface IClient {
 
-    void connect(String url, WebSocketListener connectCallback);
+    void connect(String url,int timeoutOfSecond, WebSocketListener connectCallback);
 
     void close(String url, ICallback<Void> closeHandle);
 

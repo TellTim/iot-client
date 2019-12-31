@@ -281,6 +281,12 @@ public class CoreService extends Service
         }
     }
 
+    @Override public void onAuthTimeOut() {
+        if (viewHandler!=null){
+            viewHandler.onShowTimeOut();
+        }
+    }
+
     /**
      * 启动授权界面,有且仅当
      * 开机检测本地sharedPref中的授权标记未为授权

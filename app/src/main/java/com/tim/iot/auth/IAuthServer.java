@@ -9,5 +9,5 @@ import com.tim.common.IConnectAuthServerCallback;
  * @date 2019/12/24 19:45
  */
 public interface IAuthServer {
-    void connect(IConnectAuthServerCallback connectAuthServerCallback);
+    void connect(String param,int timeoutOfSecond,IConnectAuthServerCallback connectAuthServerCallback);
 }

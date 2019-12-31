@@ -1,5 +1,7 @@
 package com.tim.common;
 
+import com.tim.iot.common.AccountInfo;
+
 /**
  * IConnectAuthServerCallback
  *
@@ -8,7 +10,6 @@ package com.tim.common;
  */
 public interface IConnectAuthServerCallback {
     void onConnectSuccess();
-    void onAuthConfirm();
-    void onTimeOut();
+    void onAuthConfirm(AccountInfo accountInfo);
     void onConnectError(Exception e);
 }

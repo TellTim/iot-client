@@ -28,8 +28,8 @@ public class EasyClient implements IClient {
     }
 
     @Override
-    public void connect(String url, WebSocketListener connectHandle) {
-        webSocket.connect(url).subscribe(new Observer<WebSocketInfo>() {
+    public void connect(String url,final int timeoutOfSecond, WebSocketListener connectHandle) {
+        webSocket.connect(url,timeoutOfSecond).subscribe(new Observer<WebSocketInfo>() {
                     @Override
                     public void onSubscribe(Disposable d) {
                         if (showLog) {
@@ -66,7 +66,7 @@ public class EasyClient implements IClient {
 
     @Override
     public void close(String url, ICallback<Void> closeHandle) {
-        Disposable disposable = this.webSocket.connect(url).subscribe();
+        Disposable disposable = this.webSocket.connect(url,120).subscribe();
         if (!disposable.isDisposed()) {
             disposable.dispose();
             closeHandle.onSuccess(null);

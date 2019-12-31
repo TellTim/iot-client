@@ -11,7 +11,25 @@ import com.tim.iot.common.QrCodeInfo;
  * 同步远端授权的回调
  */
 public interface ISyncQrCodeCallback {
+    /**
+     * 已经授权成功
+     * @param accountInfo AccountInfo
+     */
     void onSyncQrCodeAuthorized(AccountInfo accountInfo);
+    /**
+     * 同步到新的二维码
+     * @param qrCodeInfo QrCodeInfo
+     */
     void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo);
+
+    /**
+     * 同步二维码异常
+     * @param e Exception
+     */
     void onSyncQrCodeError(Exception e);
+
+    /**
+     * 二维码过期
+     */
+    void onAuthTimeOut();
 }

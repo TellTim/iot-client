@@ -47,7 +47,7 @@ public final class RxWebSocket implements IWebSocket {
     private String logTag;
     private SSLSocketFactory mSslSocketFactory;
     private X509TrustManager mTrustManager;
-
+    private static final int noAskTimeOut = 120;
     public RxWebSocket(OkHttpClient client, long reconnectInterval,
             TimeUnit reconnectIntervalTimeUnit, boolean showLog, String logTag,
             SSLSocketFactory sslSocketFactory, X509TrustManager trustManager) {
@@ -72,17 +72,17 @@ public final class RxWebSocket implements IWebSocket {
      * @return Observable<WebSocketInfo>
      */
     @Override
-    public synchronized Observable<WebSocketInfo> connect(String url) {
+    public synchronized Observable<WebSocketInfo> connect(String url,final int timeoutOfSecond) {
         Observable<WebSocketInfo> observable = observableMap.get(url);
         if (observable == null) {
             observable = Observable.create(new WebSocketOnSubscribe(url))
                     //自动重连
-                    .timeout(BuildConfig.WEB_SOCKET_TIME_OUT, TimeUnit.SECONDS)
+                    .timeout(timeoutOfSecond, TimeUnit.SECONDS)
                     .retry(throwable -> {
                                 if (showLog) {
                                     if (throwable instanceof TimeoutException) {
                                         Log.d(logTag, String.format(" --> %d %s 未出现反馈,网络可能已经中断,%d %s 后重连",
-                                                BuildConfig.WEB_SOCKET_TIME_OUT,TimeUnit.SECONDS.toString(),
+                                                timeoutOfSecond,TimeUnit.SECONDS.toString(),
                                                 mReconnectInterval,mReconnectIntervalTimeUnit.toString() ));
                                     } else if (throwable instanceof IOException) {
                                         Log.e(logTag, String.format(" -->  网络出现异常，%d %s 后重连",
@@ -218,7 +218,7 @@ public final class RxWebSocket implements IWebSocket {
                         millis = DEFAULT_TIMEOUT * 1000;
                     }
                     if (showLog) {
-                        Log.d(logTag, " --> 即将重连");
+                        Log.d(logTag, String.format(" --> %d秒后即将重连",millis));
                     }
                     SystemClock.sleep(millis);
                     emitter.onNext(WebSocketInfo.createReconnect());
@@ -327,7 +327,7 @@ public final class RxWebSocket implements IWebSocket {
     }
 
     private Observable<WebSocket> getWebSocket(String url) {
-        return connect(url)
+        return connect(url,noAskTimeOut)
                 .map(WebSocketInfo::getWebSocket);
     }
 

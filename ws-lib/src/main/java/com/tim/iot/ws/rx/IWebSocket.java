@@ -14,7 +14,7 @@ public interface IWebSocket {
     /**
      * 获取连接，并返回观察对象
      */
-    Observable<WebSocketInfo> connect(String url);
+    Observable<WebSocketInfo> connect(String url,int timeoutOfSecond);
 
     void send(String url, String msg);
 

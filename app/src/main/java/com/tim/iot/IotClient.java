@@ -1,6 +1,7 @@
 package com.tim.iot;
 
 import android.content.Context;
+import com.tim.common.DeviceUtils;
 import com.tim.common.ICallback;
 import com.tim.common.IConnectAuthServerCallback;
 import com.tim.common.ISyncAuthorizedCallback;
@@ -71,18 +72,18 @@ public class IotClient implements IIotClient {
 
             @Override
             public void onFail(Respond respond) {
-                if (Respond.State.BIND_NOT_EXIST.equals(respond.getState())){
+                if (Respond.State.BIND_NOT_EXIST.equals(respond.getState())) {
                     logger.d("syncAuthorized onFail bind not exist");
                     localServer.clearAuthorized();
                     callback.onSyncUnAuthorized();
-                }else{
+                } else {
                     callback.onSyncAuthorizedError(new Exception(respond.getState().getValue()));
                 }
             }
 
             @Override
             public void onError(Throwable throwable) {
-                logger.e("syncAuthorized onError "+throwable.getMessage());
+                logger.e("syncAuthorized onError " + throwable.getMessage());
                 callback.onSyncAuthorizedError(new Exception(throwable.getMessage()));
             }
         });
@@ -104,33 +105,26 @@ public class IotClient implements IIotClient {
                 if (respond.getState().equals(Respond.State.BIND_NOT_EXIST)) {
                     logger.d("syncQrCode onSyncQrCodeInfo "
                             + ((QrCodeInfo) respond.getT()).getQrCode());
-                    callback.onSyncQrCodeInfo((QrCodeInfo) respond.getT());
-                    executorService.execute(()->{
-                        authServer.connect(new IConnectAuthServerCallback() {
-                            @Override
-                            public void onConnectSuccess() {
+                    QrCodeInfo qrCodeInfo = (QrCodeInfo) respond.getT();
 
-                            }
+                    executorService.execute(() -> authServer.connect(DeviceUtils.getDeviceSerial(),
+                            qrCodeInfo.getExpireIn(), new IConnectAuthServerCallback() {
+                        @Override
+                        public void onConnectSuccess() {
+                            callback.onSyncQrCodeInfo(qrCodeInfo);
+                        }
 
-                            @Override
-                            public void onAuthConfirm() {
-                                AccountInfo accountInfo = new AccountInfo();;
-                                accountInfo.setAccount("15013670707");
-                                accountInfo.setCreateAt(21561641633L);
-                                localServer.saveAuthToLocal(accountInfo.toString());
-                                callback.onSyncQrCodeAuthorized(accountInfo);
-                            }
+                        @Override
+                        public void onAuthConfirm(AccountInfo accountInfo) {
+                            localServer.saveAuthToLocal(accountInfo.toString());
+                            callback.onSyncQrCodeAuthorized(accountInfo);
+                        }
 
-                            @Override public void onTimeOut() {
-
-                            }
-
-                            @Override public void onConnectError(Exception e) {
-
-                            }
-                        });
-                    });
-
+                        @Override
+                        public void onConnectError(Exception e) {
+                            callback.onSyncQrCodeError(e);
+                        }
+                    }));
                 } else {
                     //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
                     callback.onSyncQrCodeError(new Exception(((String) respond.getT())));
