@@ -19,7 +19,6 @@ import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
 import com.tim.common.AuthorizedEvent;
 import com.tim.common.DeviceUtils;
-import com.tim.common.IConnectAuthServerCallback;
 import com.tim.common.INetConnectedCallback;
 import com.tim.common.ISyncAuthorizedCallback;
 import com.tim.common.ISyncQrCodeCallback;
@@ -96,6 +95,7 @@ public class CoreService extends Service
                     .apply();
         }
         authSharedPref.registerOnSharedPreferenceChangeListener(this);
+        //本地授权标识为空，则跳转到授权界面.
         if (AppConst.UN_AUTH_ACCOUNT_VALUE.equals(
                 authSharedPref.getString(AppConst.AUTH_ACCOUNT_ITEM,
                         AppConst.UN_AUTH_ACCOUNT_VALUE))) {
@@ -115,7 +115,7 @@ public class CoreService extends Service
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         logger.d("onStartCommand");
-        if (intent != null && AppAction.ACTION_BOOT_SYNC_REMOTE_AUTH.equals(intent.getAction())) {
+        if (intent != null && AppAction.ACTION_BOOT_COMPLETE.equals(intent.getAction())) {
             registerNetLister(this);
         }
         return super.onStartCommand(intent, flags, startId);
@@ -239,7 +239,9 @@ public class CoreService extends Service
     public void onSyncAuthorized(AccountInfo accountInfo) { }
 
     @Override
-    public void onSyncUnAuthorized() { }
+    public void onSyncUnAuthorized() {
+        startAuthView();
+    }
 
     @Override
     public void onSyncAuthorizedError(Exception e) { }

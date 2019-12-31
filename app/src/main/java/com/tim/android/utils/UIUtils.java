@@ -1,4 +1,4 @@
-package com.tim.common;
+package com.tim.android.utils;
 
 import android.content.Context;
 import android.util.TypedValue;

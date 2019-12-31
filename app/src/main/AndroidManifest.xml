@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission  android:name = "android.permission.GET_TASKS"/>
     <application
         android:name="com.tim.android.IotApplication"
         android:allowBackup="true"
@@ -25,7 +26,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.tim.android.activity.AuthActivity"  />
+        <activity android:name="com.tim.android.activity.AuthActivity" android:launchMode="singleTop" />
         <receiver android:name="com.tim.android.receiver.BootReceiver"
             android:enabled="true"
             android:exported="true">

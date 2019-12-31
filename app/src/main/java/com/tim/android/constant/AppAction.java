@@ -7,5 +7,5 @@ package com.tim.android.constant;
  * @date 2019/12/24 13:00
  */
 public class AppAction {
-    public static final String ACTION_BOOT_SYNC_REMOTE_AUTH = "com.tim.iot.action.BOOT_SYNC_REMOTE_AUTH";
+    public static final String ACTION_BOOT_COMPLETE = "com.tim.iot.action.ACTION_BOOT_COMPLETE";
 }

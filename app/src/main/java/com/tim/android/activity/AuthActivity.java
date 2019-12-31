@@ -19,7 +19,7 @@ import com.tim.android.service.IServiceHandler;
 import com.tim.android.service.IViewHandler;
 import com.tim.common.AuthorizedEvent;
 import com.tim.common.Logger;
-import com.tim.common.UIUtils;
+import com.tim.android.utils.UIUtils;
 import com.tim.iot.R;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;

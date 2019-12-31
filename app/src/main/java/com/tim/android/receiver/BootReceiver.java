@@ -21,7 +21,7 @@ public class BootReceiver extends BroadcastReceiver {
         if (intent != null && Objects.equals(intent.getAction(), Intent.ACTION_BOOT_COMPLETED)) {
             Logger.getLogger("BootReceiver").d("Receive boot complete");
             Intent service = new Intent(context, CoreService.class);
-            service.setAction(AppAction.ACTION_BOOT_SYNC_REMOTE_AUTH);
+            service.setAction(AppAction.ACTION_BOOT_COMPLETE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(service);
             } else {
