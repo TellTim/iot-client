@@ -79,4 +79,9 @@ public class EasyClient implements IClient {
     public void send(String url, String simpleText, ICallback sendCallback) {
 
     }
+
+    @Override
+    public void closeAll() {
+        this.webSocket.closeAllNow();
+    }
 }

@@ -10,4 +10,7 @@ import com.tim.common.IConnectAuthServerCallback;
  */
 public interface IAuthServer {
     void connect(String param,int timeoutOfSecond,IConnectAuthServerCallback connectAuthServerCallback);
+
+    void closeConnect();
+
 }

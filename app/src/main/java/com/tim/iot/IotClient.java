@@ -106,25 +106,25 @@ public class IotClient implements IIotClient {
                     logger.d("syncQrCode onSyncQrCodeInfo "
                             + ((QrCodeInfo) respond.getT()).getQrCode());
                     QrCodeInfo qrCodeInfo = (QrCodeInfo) respond.getT();
-
                     executorService.execute(() -> authServer.connect(DeviceUtils.getDeviceSerial(),
                             qrCodeInfo.getExpireIn(), new IConnectAuthServerCallback() {
-                        @Override
-                        public void onConnectSuccess() {
-                            callback.onSyncQrCodeInfo(qrCodeInfo);
-                        }
+                                @Override
+                                public void onConnectSuccess() {
+                                    callback.onSyncQrCodeInfo(qrCodeInfo);
+                                }
 
-                        @Override
-                        public void onAuthConfirm(AccountInfo accountInfo) {
-                            localServer.saveAuthToLocal(accountInfo.toString());
-                            callback.onSyncQrCodeAuthorized(accountInfo);
-                        }
+                                @Override
+                                public void onAuthConfirm(AccountInfo accountInfo) {
+                                    localServer.saveAuthToLocal(accountInfo.toString());
+                                    callback.onSyncQrCodeAuthorized(accountInfo);
+                                    authServer.closeConnect();
+                                }
 
-                        @Override
-                        public void onConnectError(Exception e) {
-                            callback.onSyncQrCodeError(e);
-                        }
-                    }));
+                                @Override
+                                public void onConnectError(Exception e) {
+                                    callback.onSyncQrCodeError(e);
+                                }
+                            }));
                 } else {
                     //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
                     callback.onSyncQrCodeError(new Exception(((String) respond.getT())));

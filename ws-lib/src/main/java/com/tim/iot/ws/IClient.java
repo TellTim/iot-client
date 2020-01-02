@@ -12,5 +12,7 @@ public interface IClient {
 
     void close(String url, ICallback<Void> closeHandle);
 
+    void closeAll();
+
     void send(String url,String simpleText, ICallback sendCallback);
 }

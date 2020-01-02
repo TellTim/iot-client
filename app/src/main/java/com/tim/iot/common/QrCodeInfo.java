@@ -17,11 +17,6 @@ public class QrCodeInfo {
     public QrCodeInfo() {
     }
 
-    public QrCodeInfo(String qrCode, int expireIn) {
-        this.qrCode = qrCode;
-        this.expireIn = expireIn;
-    }
-
     public String getQrCode() {
         return qrCode;
     }

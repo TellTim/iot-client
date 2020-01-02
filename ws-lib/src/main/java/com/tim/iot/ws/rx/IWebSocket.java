@@ -21,29 +21,9 @@ public interface IWebSocket {
     void send(String url, ByteString msg);
 
     /**
-     * 不关心WebSocket是否连接，直接发送
-     */
-    Observable<Boolean> asyncSend(String url, String msg);
-
-    /**
-     * 同上，只是消息类型为ByteString
-     */
-    Observable<Boolean> asyncSend(String url, ByteString byteString);
-
-    /**
-     * 关闭指定Url的连接
-     */
-    Observable<Boolean> close(String url);
-
-    /**
      * 马上关闭指定Url的连接
      */
     void closeNow(String url);
-
-    /**
-     * 关闭当前所有连接
-     */
-    Observable<List<Boolean>> closeAll();
 
     /**
      * 马上关闭所有连接

@@ -3,24 +3,17 @@ package com.tim.iot.ws.rx.impl;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
-import com.tim.iot.ws.BuildConfig;
 import com.tim.iot.ws.entity.WebSocketCloseEnum;
 import com.tim.iot.ws.entity.WebSocketInfo;
 import com.tim.iot.ws.rx.IWebSocket;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.net.ProtocolException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -49,6 +42,7 @@ public final class RxWebSocket implements IWebSocket {
     private SSLSocketFactory mSslSocketFactory;
     private X509TrustManager mTrustManager;
     private static final int noAskTimeOut = 120;
+
     public RxWebSocket(OkHttpClient client, long reconnectInterval,
             TimeUnit reconnectIntervalTimeUnit, boolean showLog, String logTag,
             SSLSocketFactory sslSocketFactory, X509TrustManager trustManager) {
@@ -73,30 +67,31 @@ public final class RxWebSocket implements IWebSocket {
      * @return Observable<WebSocketInfo>
      */
     @Override
-    public synchronized Observable<WebSocketInfo> connect(String url,final int timeoutOfSecond) {
+    public synchronized Observable<WebSocketInfo> connect(String url, final int timeoutOfSecond) {
         Observable<WebSocketInfo> observable = observableMap.get(url);
         if (observable == null) {
             observable = Observable.create(new WebSocketOnSubscribe(url))
-                    //自动重连
+                    //超时设置
                     .timeout(timeoutOfSecond, TimeUnit.SECONDS)
+                    //重连
                     .retry(throwable -> {
                                 if (showLog) {
                                     if (throwable instanceof TimeoutException) {
-                                        Log.d(logTag, String.format(" --> %d %s 未出现反馈,网络可能已经中断,%d %s 后重连",
-                                                timeoutOfSecond,TimeUnit.SECONDS.toString(),
-                                                mReconnectInterval,mReconnectIntervalTimeUnit.toString() ));
+                                        Log.d(logTag, String.format(" --> %d %s 超时未反馈,断开连接",
+                                                timeoutOfSecond, TimeUnit.SECONDS.toString()));
+                                        return false;
+                                    } else if (throwable instanceof ProtocolException) {
+                                        Log.e(logTag,
+                                                String.format(" --> 网络交互异常: %s",
+                                                        throwable.toString()));
+                                        return false;
                                     } else if (throwable instanceof IOException) {
                                         Log.e(logTag, String.format(" -->  网络出现异常，%d %s 后重连",
-                                                mReconnectInterval,mReconnectIntervalTimeUnit.toString()));
-                                    }
-                                    Log.e(logTag, String.format(" -->  ###网络出现异常，%d %s:Error:%s",
-                                            mReconnectInterval,mReconnectIntervalTimeUnit.toString(),throwable.toString()));
-                                    if(throwable instanceof ProtocolException){
-                                        return false;
+                                                mReconnectInterval,
+                                                mReconnectIntervalTimeUnit.toString()));
                                     }
                                 }
-                                return throwable instanceof IOException
-                                        || throwable instanceof TimeoutException;
+                                return throwable instanceof IOException;
                             }
                     )
                     .doOnDispose(() -> {
@@ -108,6 +103,7 @@ public final class RxWebSocket implements IWebSocket {
                     .share()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread());
+
             observableMap.put(url, observable);
             if (showLog) {
                 Log.d(logTag, " --> 插入缓存成功 ");
@@ -149,55 +145,11 @@ public final class RxWebSocket implements IWebSocket {
     }
 
     @Override
-    public Observable<Boolean> asyncSend(String url, String msg) {
-        return getWebSocket(url)
-                .take(1)
-                .map(webSocket -> webSocket.send(msg));
-    }
-
-    @Override
-    public Observable<Boolean> asyncSend(String url, ByteString byteString) {
-        return getWebSocket(url)
-                .take(1)
-                .map(webSocket -> webSocket.send(byteString));
-    }
-
-    @Override
-    public Observable<Boolean> close(String url) {
-        return Observable.create((ObservableOnSubscribe<WebSocket>) emitter -> {
-            WebSocket webSocket = webSocketMap.get(url);
-            if (webSocket == null) {
-                emitter.onError(new NullPointerException(url + " --> close,关闭时,连接已不存在"));
-            } else {
-                emitter.onNext(webSocket);
-            }
-        }).map(this::closeWebSocket);
-    }
-
-    @Override
     public void closeNow(String url) {
         if (showLog) {
             Log.d(logTag, url + " --> 马上关闭连接");
         }
         closeWebSocket(webSocketMap.get(url));
-    }
-
-    @Override
-    public Observable<List<Boolean>> closeAll() {
-        if (showLog) {
-            Log.d(logTag, "关闭所有连接");
-        }
-        return Observable
-                .just(webSocketMap)
-                .map(Map::values)
-                .concatMap(
-                        (Function<Collection<WebSocket>, ObservableSource<WebSocket>>) Observable::fromIterable)
-                .map(
-                        this::closeWebSocket)
-                .collect(
-                        (Callable<List<Boolean>>) ArrayList::new,
-                        List::add)
-                .toObservable();
     }
 
     @Override
@@ -224,7 +176,7 @@ public final class RxWebSocket implements IWebSocket {
                         millis = DEFAULT_TIMEOUT * 1000;
                     }
                     if (showLog) {
-                        Log.d(logTag, String.format(" --> %d秒后即将重连",millis));
+                        Log.d(logTag, String.format(" --> %d秒后即将重连", millis));
                     }
                     SystemClock.sleep(millis);
                     emitter.onNext(WebSocketInfo.createReconnect());
@@ -237,12 +189,18 @@ public final class RxWebSocket implements IWebSocket {
         }
 
         private void initWebSocket(ObservableEmitter<WebSocketInfo> emitter) {
+            if (mWebSocket != null) {
+                closeWebSocket(mWebSocket);
+                mWebSocket = null;
+            }
             mWebSocket = mClient.newWebSocket(getRequest(mWebSocketUrl), new WebSocketListener() {
                 @Override
                 public void onOpen(final WebSocket webSocket, Response response) {
                     webSocketMap.put(mWebSocketUrl, webSocket);
                     if (showLog) {
-                        Log.d(logTag,String.format("%s --> onOpen,新连接插入连接池中,连接池中包含%d个连接",mWebSocketUrl,webSocketMap.size()));
+                        Log.d(logTag,
+                                String.format("%s --> onOpen,新连接插入连接池中,连接池中包含%d个连接", mWebSocketUrl,
+                                        webSocketMap.size()));
                     }
                     if (!emitter.isDisposed()) {
                         if (showLog) {
@@ -281,7 +239,9 @@ public final class RxWebSocket implements IWebSocket {
                 @Override
                 public void onFailure(WebSocket webSocket, Throwable t, Response response) {
                     if (showLog) {
-                        Log.e(logTag,String.format("%s --> onFailure %s %s",mWebSocketUrl,t.toString(), webSocket.request().url().uri().getPath()));
+                        Log.e(logTag,
+                                String.format("%s --> onFailure %s %s", mWebSocketUrl, t.toString(),
+                                        webSocket.request().url().uri().getPath()));
                     }
                     if (!emitter.isDisposed()) {
                         if (showLog) {
@@ -313,15 +273,6 @@ public final class RxWebSocket implements IWebSocket {
         }
     }
 
-    private void removeWebSocketCache(WebSocket webSocket) {
-        for (Map.Entry<String, WebSocket> entry : webSocketMap.entrySet()) {
-            if (entry.getValue() == webSocket) {
-                String url = entry.getKey();
-                webSocketMap.remove(url);
-            }
-        }
-    }
-
     private void removeUrlWebSocketMapping(WebSocket webSocket) {
         for (Map.Entry<String, WebSocket> entry : webSocketMap.entrySet()) {
             if (entry.getValue() == webSocket) {
@@ -330,11 +281,6 @@ public final class RxWebSocket implements IWebSocket {
                 webSocketMap.remove(url);
             }
         }
-    }
-
-    private Observable<WebSocket> getWebSocket(String url) {
-        return connect(url,noAskTimeOut)
-                .map(WebSocketInfo::getWebSocket);
     }
 
     private boolean closeWebSocket(WebSocket webSocket) {

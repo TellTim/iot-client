@@ -281,7 +281,8 @@ public class CoreService extends Service
         }
     }
 
-    @Override public void onAuthTimeOut() {
+    @Override
+    public void onAuthTimeOut() {
         if (viewHandler!=null){
             viewHandler.onShowTimeOut();
         }
