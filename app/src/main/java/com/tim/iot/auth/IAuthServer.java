@@ -1,6 +1,6 @@
 package com.tim.iot.auth;
 
-import com.tim.common.IConnectAuthServerCallback;
+import com.tim.iot.device.entity.AccountInfo;
 
 /**
  * IAuthServer
@@ -11,6 +11,13 @@ import com.tim.common.IConnectAuthServerCallback;
 public interface IAuthServer {
     void connect(String param,int timeoutOfSecond,IConnectAuthServerCallback connectAuthServerCallback);
 
-    void closeConnect();
+    void closeConnect(String url);
+
+    interface IConnectAuthServerCallback{
+        void onConnectSuccess();
+        void onConnectError(Exception e);
+        void onConfirm(AccountInfo accountInfo);
+        void onTimeOut();
+    }
 
 }

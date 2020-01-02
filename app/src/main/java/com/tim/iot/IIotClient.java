@@ -1,7 +1,7 @@
 package com.tim.iot;
 
-import com.tim.common.ISyncAuthorizedCallback;
-import com.tim.common.ISyncQrCodeCallback;
+import com.tim.iot.device.entity.AccountInfo;
+import com.tim.iot.device.entity.QrCodeInfo;
 
 /**
  * IIotClient
@@ -15,4 +15,40 @@ public interface IIotClient {
     void syncAuthorized(ISyncAuthorizedCallback callback);
 
     void syncQrCode(ISyncQrCodeCallback syncQrCodeCallback);
+
+    interface ISyncAuthorizedCallback {
+        void onSyncAuthorized(AccountInfo accountInfo);
+
+        void onSyncUnAuthorized();
+
+        void onSyncAuthorizedError(Exception e);
+    }
+
+    interface ISyncQrCodeCallback {
+        /**
+         * 已经授权成功
+         *
+         * @param accountInfo AccountInfo
+         */
+        void onSyncQrCodeAuthorized(AccountInfo accountInfo);
+
+        /**
+         * 同步到新的二维码
+         *
+         * @param qrCodeInfo QrCodeInfo
+         */
+        void onSyncQrCodeInfo(QrCodeInfo qrCodeInfo);
+
+        /**
+         * 同步二维码异常
+         *
+         * @param e Exception
+         */
+        void onSyncQrCodeError(Exception e);
+
+        /**
+         * 二维码过期
+         */
+        void onAuthTimeOut();
+    }
 }

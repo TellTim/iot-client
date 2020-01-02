@@ -1,7 +1,4 @@
-package com.tim.iot.local;
-
-import com.tim.common.ICallback;
-import com.tim.common.Respond;
+package com.tim.iot.device.local;
 
 /**
  * ILocalServer

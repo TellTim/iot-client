@@ -1,7 +1,7 @@
-package com.tim.iot.register.protocol;
+package com.tim.iot.device.remote.protocol;
 
 import com.google.gson.annotations.SerializedName;
-import com.tim.iot.common.AccountInfo;
+import com.tim.iot.device.entity.AccountInfo;
 
 /**
  * BaseResult

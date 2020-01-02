@@ -19,15 +19,13 @@ import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
 import com.tim.common.DeviceUtils;
 import com.tim.common.INetConnectedCallback;
-import com.tim.common.ISyncAuthorizedCallback;
-import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.Logger;
 import com.tim.iot.BuildConfig;
 import com.tim.iot.IIotClient;
 import com.tim.iot.IotClient;
-import com.tim.iot.common.AccountInfo;
+import com.tim.iot.device.entity.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
-import com.tim.iot.common.QrCodeInfo;
+import com.tim.iot.device.entity.QrCodeInfo;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -43,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CoreService extends Service
         implements SharedPreferences.OnSharedPreferenceChangeListener, INetConnectedCallback,
-        ISyncQrCodeCallback, ISyncAuthorizedCallback,IServiceHandler {
+        IIotClient.ISyncQrCodeCallback, IIotClient.ISyncAuthorizedCallback,IServiceHandler {
     private static final Logger logger = Logger.getLogger("CoreService");
 
     private static final int THREAD_POOL_CORE_SIZE = 4;

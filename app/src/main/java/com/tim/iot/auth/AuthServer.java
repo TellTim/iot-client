@@ -1,15 +1,14 @@
 package com.tim.iot.auth;
 
 import android.text.TextUtils;
-import com.tim.common.IConnectAuthServerCallback;
 import com.tim.common.Logger;
 import com.tim.iot.BuildConfig;
-import com.tim.iot.common.AccountInfo;
-import com.tim.iot.common.DeviceInfo;
-import com.tim.iot.ws.Builder;
-import com.tim.iot.ws.IClient;
-import com.tim.iot.ws.WebSocketListener;
-import java.nio.ByteBuffer;
+import com.tim.iot.auth.entity.WebSocketInfo;
+import com.tim.iot.auth.rx.IWebSocket;
+import com.tim.iot.device.entity.AccountInfo;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
+import java.util.concurrent.TimeoutException;
 
 /**
  * AuthServer
@@ -18,57 +17,68 @@ import java.nio.ByteBuffer;
  * @date 2019/12/24 19:33
  */
 public class AuthServer implements IAuthServer {
-
-    private static final Logger logger = Logger.getLogger("AuthServer");
-    private IClient client;
-    private DeviceInfo deviceInfo;
-
-    public AuthServer(DeviceInfo deviceInfo) {
-        this.deviceInfo = deviceInfo;
-        this.client = new Builder().setShowLog(true, "AuthServer-client").build();
+    private static final String TAG = "AuthServer";
+    private static final Logger logger = Logger.getLogger(TAG);
+    private IWebSocket webSocket;
+    private Disposable disposable;
+    public AuthServer() {
+        this.webSocket = new Builder().setShowLog(true, TAG).build();
     }
 
     @Override
-    public synchronized void connect(String param, int timeoutOfSecond,
+    public synchronized void connect(String url, int timeoutOfSecond,
             IConnectAuthServerCallback connectAuthServerCallback) {
-        this.client.connect(String.format("%s?deviceId=%s", BuildConfig.AUTH_HOST, param),
-                timeoutOfSecond,
-                new WebSocketListener() {
-                    @Override
-                    public void onConnected() {
-                        connectAuthServerCallback.onConnectSuccess();
-                    }
+        this.webSocket.connect(url,timeoutOfSecond).subscribe(new Observer<WebSocketInfo>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                logger.d("开始监听连接变化");
+                disposable = d;
+            }
 
-                    @Override public void onReConnect() {
+            @Override
+            public void onNext(WebSocketInfo webSocketInfo) {
+                if (webSocketInfo.isConnected()) {
+                    logger.d("连接成功");
+                    connectAuthServerCallback.onConnectSuccess();
+                } else if (webSocketInfo.getSimpleMsg() != null) {
+                    String simpleMessage = webSocketInfo.getSimpleMsg();
+                    logger.d("收到消息: "+simpleMessage);
+                    if (!TextUtils.isEmpty(simpleMessage) && simpleMessage.startsWith("confirm")) {
+                        String[] convertArray = simpleMessage.split("#");
+                        AccountInfo accountInfo = new AccountInfo();
+                        accountInfo.setAccount(convertArray[1]);
+                        accountInfo.setCreateAt(Long.valueOf(convertArray[2]));
+                        connectAuthServerCallback.onConfirm(accountInfo);
                     }
+                } else if (webSocketInfo.getByteStringMsg() != null) {
+                    logger.d("receive byte message");
+                } else if (webSocketInfo.isReconnect()) {
+                    logger.d("正在重连");
+                }
+            }
 
-                    @Override
-                    public void onConnectFailed(Throwable e) {
-                        connectAuthServerCallback.onConnectError(new Exception(e));
-                    }
+            @Override
+            public void onError(Throwable e) {
+                if (e instanceof TimeoutException) {
+                    logger.d("超时未响应");
+                    connectAuthServerCallback.onTimeOut();
+                } else {
+                    logger.d("连接异常 " + e.getMessage());
+                    connectAuthServerCallback.onConnectError(new Exception(e));
+                }
+            }
 
-                    @Override public void onDisconnect() {
-                    }
-
-                    @Override
-                    public void onMessage(String message) {
-                        if (!TextUtils.isEmpty(message) && message.startsWith("confirm")) {
-                            String[] convertArray = message.split("#");
-                            AccountInfo accountInfo = new AccountInfo();
-                            accountInfo.setAccount(convertArray[1]);
-                            accountInfo.setCreateAt(Long.valueOf(convertArray[2]));
-                            connectAuthServerCallback.onAuthConfirm(accountInfo);
-                        }
-                    }
-
-                    @Override public void onMessage(ByteBuffer bytes) {
-
-                    }
-                });
+            @Override
+            public void onComplete() {
+                logger.d(" --> 处理完毕");
+            }
+        });
     }
 
     @Override
-    public void closeConnect() {
-        this.client.closeAll();
+    public void closeConnect(String url) {
+        if (!disposable.isDisposed()){
+            disposable.dispose();
+        }
     }
 }

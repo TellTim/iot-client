@@ -1,4 +1,4 @@
-package com.tim.iot.common;
+package com.tim.iot.device.entity;
 
 import androidx.annotation.NonNull;
 import com.google.gson.annotations.SerializedName;

@@ -1,4 +1,4 @@
-package com.tim.iot.local;
+package com.tim.iot.device.local;
 
 import android.content.Context;
 import android.content.SharedPreferences;

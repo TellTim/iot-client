@@ -1,15 +1,15 @@
-package com.tim.iot.register;
+package com.tim.iot.device.remote;
 
 import com.google.gson.GsonBuilder;
 import com.tim.common.ICallback;
 import com.tim.common.Logger;
 import com.tim.common.Respond;
 import com.tim.iot.BuildConfig;
-import com.tim.iot.common.AccountInfo;
+import com.tim.iot.device.entity.AccountInfo;
 import com.tim.iot.common.DeviceInfo;
-import com.tim.iot.register.api.IRegisterApi;
-import com.tim.iot.register.protocol.QrCode;
-import com.tim.iot.register.protocol.Register;
+import com.tim.iot.device.remote.api.IDeviceApi;
+import com.tim.iot.device.remote.protocol.QrCode;
+import com.tim.iot.device.remote.protocol.Register;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -21,18 +21,18 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * RegisterService
+ * DeviceService
  *
  * @author Tell.Tim
  * @date 2019/12/27 14:52
  */
-public class RegisterService implements IRegisterServer {
-    private static final String TAG = "RegisterService";
+public class DeviceService implements IDeviceServer {
+    private static final String TAG = "DeviceService";
     private static final Logger logger = Logger.getLogger(TAG);
     private ExecutorService executorService;
-    private IRegisterApi registerApi;
+    private IDeviceApi registerApi;
 
-    public RegisterService(ExecutorService executorService) {
+    public DeviceService(ExecutorService executorService) {
         this.executorService = executorService;
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         //if (BuildConfig.DEBUG) {
@@ -49,7 +49,7 @@ public class RegisterService implements IRegisterServer {
                 .addCallAdapterFactory(
                         RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .build();
-        this.registerApi = retrofit.create(IRegisterApi.class);
+        this.registerApi = retrofit.create(IDeviceApi.class);
     }
 
     @Override
@@ -89,6 +89,7 @@ public class RegisterService implements IRegisterServer {
 
             @Override
             public void onComplete() {
+                logger.d("同步二维码事件处理完毕");
             }
         });
     }

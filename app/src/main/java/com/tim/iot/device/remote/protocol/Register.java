@@ -1,20 +1,19 @@
-package com.tim.iot.register.protocol;
+package com.tim.iot.device.remote.protocol;
 
 import com.google.gson.annotations.SerializedName;
-import com.tim.iot.common.AccountInfo;
-import com.tim.iot.common.QrCodeInfo;
 
 /**
- * QrCode
+ * Register
  *
  * @author Tell.Tim
- * @date 2019/12/27 19:11
+ * @date 2019/12/28 19:57
  */
-public class QrCode {
-
+public class Register {
     public static class Param {
         @SerializedName("deviceId")
         private String deviceId;
+        private String imei;
+        private String mac;
         @SerializedName("timestamp")
         private Long timestamp;
         private String type;
@@ -25,6 +24,22 @@ public class QrCode {
 
         public void setDeviceId(String deviceId) {
             this.deviceId = deviceId;
+        }
+
+        public String getImei() {
+            return imei;
+        }
+
+        public void setImei(String imei) {
+            this.imei = imei;
+        }
+
+        public String getMac() {
+            return mac;
+        }
+
+        public void setMac(String mac) {
+            this.mac = mac;
         }
 
         public Long getTimestamp() {
@@ -44,16 +59,7 @@ public class QrCode {
         }
     }
 
-    public static class Result extends BaseResult {
-        @SerializedName("qrCodeInfo")
-        private QrCodeInfo qrCodeInfo;
+    public static class Result extends BaseResult{
 
-        public QrCodeInfo getQrCodeInfo() {
-            return qrCodeInfo;
-        }
-
-        public void setQrCodeInfo(QrCodeInfo qrCodeInfo) {
-            this.qrCodeInfo = qrCodeInfo;
-        }
     }
 }

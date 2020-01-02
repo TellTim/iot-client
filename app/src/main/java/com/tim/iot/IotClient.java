@@ -3,20 +3,18 @@ package com.tim.iot;
 import android.content.Context;
 import com.tim.common.DeviceUtils;
 import com.tim.common.ICallback;
-import com.tim.common.IConnectAuthServerCallback;
-import com.tim.common.ISyncAuthorizedCallback;
-import com.tim.common.ISyncQrCodeCallback;
 import com.tim.common.Logger;
 import com.tim.common.Respond;
 import com.tim.iot.auth.AuthServer;
 import com.tim.iot.auth.IAuthServer;
-import com.tim.iot.common.AccountInfo;
+import com.tim.iot.auth.entity.UrlInfo;
 import com.tim.iot.common.DeviceInfo;
-import com.tim.iot.common.QrCodeInfo;
-import com.tim.iot.local.ILocalServer;
-import com.tim.iot.local.LocalServer;
-import com.tim.iot.register.IRegisterServer;
-import com.tim.iot.register.RegisterService;
+import com.tim.iot.device.entity.AccountInfo;
+import com.tim.iot.device.entity.QrCodeInfo;
+import com.tim.iot.device.local.ILocalServer;
+import com.tim.iot.device.local.LocalServer;
+import com.tim.iot.device.remote.DeviceService;
+import com.tim.iot.device.remote.IDeviceServer;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -32,7 +30,7 @@ public class IotClient implements IIotClient {
     private Context context;
     private IAuthServer authServer;
     private DeviceInfo deviceInfo;
-    private IRegisterServer registerServer;
+    private IDeviceServer registerServer;
     private ILocalServer localServer;
 
     private IotClient(Context context, ExecutorService executorService,
@@ -40,8 +38,8 @@ public class IotClient implements IIotClient {
         this.context = context;
         this.executorService = executorService;
         this.deviceInfo = deviceInfo;
-        this.authServer = new AuthServer(deviceInfo);
-        this.registerServer = new RegisterService(executorService);
+        this.authServer = new AuthServer();
+        this.registerServer = new DeviceService(executorService);
         this.localServer = new LocalServer(context);
     }
 
@@ -106,22 +104,34 @@ public class IotClient implements IIotClient {
                     logger.d("syncQrCode onSyncQrCodeInfo "
                             + ((QrCodeInfo) respond.getT()).getQrCode());
                     QrCodeInfo qrCodeInfo = (QrCodeInfo) respond.getT();
-                    executorService.execute(() -> authServer.connect(DeviceUtils.getDeviceSerial(),
-                            qrCodeInfo.getExpireIn(), new IConnectAuthServerCallback() {
+                    final UrlInfo urlInfo = new UrlInfo(DeviceUtils.getDeviceSerial());
+                    executorService.execute(() -> authServer.connect(urlInfo.toString(),
+                            qrCodeInfo.getExpireIn(), new IAuthServer.IConnectAuthServerCallback() {
                                 @Override
                                 public void onConnectSuccess() {
+                                    logger.d("onConnectSuccess");
                                     callback.onSyncQrCodeInfo(qrCodeInfo);
                                 }
 
                                 @Override
-                                public void onAuthConfirm(AccountInfo accountInfo) {
+                                public void onConfirm(AccountInfo accountInfo) {
+                                    logger.d("onConfirm");
                                     localServer.saveAuthToLocal(accountInfo.toString());
                                     callback.onSyncQrCodeAuthorized(accountInfo);
-                                    authServer.closeConnect();
+                                    authServer.closeConnect(urlInfo.toString());
+                                }
+
+                                @Override
+                                public void onTimeOut() {
+                                    logger.d("onTimeOut");
+                                    //authServer.closeConnect(urlInfo.toString());
+                                    callback.onAuthTimeOut();
+                                    authServer.closeConnect(urlInfo.toString());
                                 }
 
                                 @Override
                                 public void onConnectError(Exception e) {
+                                    logger.e("onConnectError "+e.getMessage());
                                     callback.onSyncQrCodeError(e);
                                 }
                             }));

@@ -6,6 +6,8 @@ package com.tim.common;
  * @author Tell.Tim
  * @date 2019/12/24 19:44
  */
-public interface ICallback<S, F> extends ISimpleCallback<S,F>{
+public interface ICallback<S, F>{
+    void onSuccess(S s);
+    void onFail(F f);
     void onError(Throwable throwable);
 }
