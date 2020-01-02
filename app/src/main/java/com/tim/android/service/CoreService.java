@@ -17,7 +17,6 @@ import androidx.annotation.Nullable;
 import com.tim.android.activity.AuthActivity;
 import com.tim.android.constant.AppAction;
 import com.tim.android.constant.AppConst;
-import com.tim.common.AuthorizedEvent;
 import com.tim.common.DeviceUtils;
 import com.tim.common.INetConnectedCallback;
 import com.tim.common.ISyncAuthorizedCallback;
@@ -35,7 +34,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.greenrobot.eventbus.EventBus;
 
 /**
  * CoreService
@@ -302,7 +300,9 @@ public class CoreService extends Service
 
     private void stopAuthView() {
         logger.d("stopAuthView");
-        EventBus.getDefault().post(new AuthorizedEvent());
+        if (viewHandler!=null){
+            viewHandler.onExit();
+        }
     }
 
     /**

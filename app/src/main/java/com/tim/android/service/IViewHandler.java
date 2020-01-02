@@ -10,4 +10,5 @@ public interface IViewHandler {
     void onShowQrCode(String qrcode);
     void onShowTimeOut();
     void onShowNetError();
+    void onExit();
 }

@@ -17,7 +17,6 @@ import cn.bingoogolapple.qrcode.zxing.QRCodeEncoder;
 import com.tim.android.service.CoreService;
 import com.tim.android.service.IServiceHandler;
 import com.tim.android.service.IViewHandler;
-import com.tim.common.AuthorizedEvent;
 import com.tim.common.Logger;
 import com.tim.android.utils.UIUtils;
 import com.tim.iot.R;
@@ -25,9 +24,6 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 /**
  * AuthActivity
@@ -53,7 +49,6 @@ public class AuthActivity extends AppCompatActivity implements ServiceConnection
         tvErrorMsg = findViewById(R.id.tv_error);
         lLayoutErrorMsg = findViewById(R.id.error_field);
         logger.d("onCreate " + getTaskId());
-        EventBus.getDefault().register(this);
         bindService(new Intent(this, CoreService.class), this, Service.BIND_WAIVE_PRIORITY);
     }
 
@@ -81,7 +76,6 @@ public class AuthActivity extends AppCompatActivity implements ServiceConnection
         if (this.subscribe!=null&&!this.subscribe.isDisposed()){
             this.subscribe.dispose();
         }
-        EventBus.getDefault().unregister(this);
         if (serviceHandler != null) {
             serviceHandler.unRegisterViewHandler(this);
         }
@@ -107,11 +101,6 @@ public class AuthActivity extends AppCompatActivity implements ServiceConnection
     @Override
     public void onServiceDisconnected(ComponentName componentName) {
 
-    }
-
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    public void when(AuthorizedEvent event) {
-        finish();
     }
 
     @Override
@@ -148,5 +137,11 @@ public class AuthActivity extends AppCompatActivity implements ServiceConnection
             lLayoutErrorMsg.setVisibility(View.VISIBLE);
             tvErrorMsg.setText("网络异常,请稍后重试");
         });
+    }
+
+    @Override
+    public void onExit() {
+        logger.d("授权通过,退出界面");
+        finish();
     }
 }
