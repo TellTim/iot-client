@@ -18,12 +18,14 @@ android {
       buildConfigField "String", "PRODUCT_TYPE", '"type-a"'
       buildConfigField "String", "REGISTER_HOST", '"http://192.168.1.173:10072/device/api/v1/"'
       buildConfigField "String", "AUTH_HOST", '"ws://192.168.1.173:9070/auth/api/v1/check"'
+      buildConfigField "boolean", "DEBUG_REGISTER", 'false'
     }
     pro {
       dimension = 'customer'
       buildConfigField "String", "PRODUCT_TYPE", '"type-a"'
       buildConfigField "String", "REGISTER_HOST", '"http://as.hdayun.com:8070/device/api/v1/"'
       buildConfigField "String", "AUTH_HOST", '"ws://as.hdayun.com:9070/auth/api/v1/check"'
+      buildConfigField "boolean", "DEBUG_REGISTER", 'true'
     }
 
     awt_pro {
@@ -31,6 +33,7 @@ android {
       buildConfigField "String", "PRODUCT_TYPE", '"type-b"'
       buildConfigField "String", "REGISTER_HOST", '"http://as.hdayun.com:8070/device/api/v1/"'
       buildConfigField "String", "AUTH_HOST", '"ws://as.hdayun.com:9070/auth/api/v1/check"'
+      buildConfigField "boolean", "DEBUG_REGISTER", 'false'
     }
   }
   signingConfigs {

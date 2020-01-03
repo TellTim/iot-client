@@ -32,7 +32,6 @@ public class IotClient implements IIotClient {
     private DeviceInfo deviceInfo;
     private IDeviceServer registerServer;
     private ILocalServer localServer;
-
     private IotClient(Context context, ExecutorService executorService,
             DeviceInfo deviceInfo) {
         this.context = context;
@@ -82,7 +81,12 @@ public class IotClient implements IIotClient {
             @Override
             public void onError(Throwable throwable) {
                 logger.e("syncAuthorized onError " + throwable.getMessage());
-                callback.onSyncAuthorizedError(new Exception(throwable.getMessage()));
+                if(BuildConfig.DEBUG_REGISTER) {
+                    localServer.clearAuthorized();
+                    callback.onSyncUnAuthorized();
+                }else{
+                    callback.onSyncAuthorizedError(new Exception(throwable.getMessage()));
+                }
             }
         });
     }
@@ -145,7 +149,44 @@ public class IotClient implements IIotClient {
             public void onError(Throwable throwable) {
                 //todo 此处应该埋点,通过trace-lib动态上传给后端,等候分析异常.
                 logger.e("syncQrCode onError " + throwable.getCause());
-                callback.onSyncQrCodeError(new Exception(throwable.getMessage()));
+                if (BuildConfig.DEBUG_REGISTER){
+                    QrCodeInfo qrCodeInfo = new QrCodeInfo();
+                    qrCodeInfo.setExpireIn(120);
+                    qrCodeInfo.setQrCode("adsfasdfasdfasdadfddd");
+                    final UrlInfo urlInfo = new UrlInfo(DeviceUtils.getDeviceSerial());
+                    executorService.execute(() -> authServer.connect(urlInfo.toString(),
+                            qrCodeInfo.getExpireIn(), new IAuthServer.IConnectAuthServerCallback() {
+                                @Override
+                                public void onConnectSuccess() {
+                                    logger.d("onConnectSuccess");
+                                    callback.onSyncQrCodeInfo(qrCodeInfo);
+                                }
+
+                                @Override
+                                public void onConfirm(AccountInfo accountInfo) {
+                                    logger.d("onConfirm");
+                                    localServer.saveAuthToLocal(accountInfo.toString());
+                                    callback.onSyncQrCodeAuthorized(accountInfo);
+                                    authServer.closeConnect(urlInfo.toString());
+                                }
+
+                                @Override
+                                public void onTimeOut() {
+                                    logger.d("onTimeOut");
+                                    callback.onAuthTimeOut();
+                                    authServer.forceClose();
+                                }
+
+                                @Override
+                                public void onConnectError(Exception e) {
+                                    logger.e("onConnectError "+e.getMessage());
+                                    callback.onSyncQrCodeError(e);
+                                }
+                            }));
+                }else{
+                    callback.onSyncQrCodeError(new Exception(throwable.getMessage()));
+                }
+
             }
         });
     }

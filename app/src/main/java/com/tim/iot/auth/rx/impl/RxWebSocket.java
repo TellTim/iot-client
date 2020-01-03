@@ -5,6 +5,7 @@ import android.os.SystemClock;
 import com.tim.common.Logger;
 import com.tim.iot.auth.entity.WebSocketCloseEnum;
 import com.tim.iot.auth.entity.WebSocketInfo;
+import com.tim.iot.auth.exception.OverReconnectCountException;
 import com.tim.iot.auth.rx.IWebSocket;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -42,6 +43,8 @@ public final class RxWebSocket implements IWebSocket {
     private SSLSocketFactory mSslSocketFactory;
     private X509TrustManager mTrustManager;
     private Logger logger;
+    private static final int MAX_RECONNECT_COUNT = 30;
+    private int currentReconnectCount;
 
     public RxWebSocket(OkHttpClient client, long reconnectInterval,
             TimeUnit reconnectIntervalTimeUnit, boolean showLog, String logTag,
@@ -58,6 +61,7 @@ public final class RxWebSocket implements IWebSocket {
         }
         this.observableWebSocketInfoMap = new ConcurrentHashMap<>();
         this.webSocketMap = new ConcurrentHashMap<>();
+        this.currentReconnectCount = 0;
     }
 
     /**
@@ -78,15 +82,19 @@ public final class RxWebSocket implements IWebSocket {
                     .retry(throwable -> {
                                 if (showLog) {
                                     if (throwable instanceof TimeoutException) {
-                                        logger.dFormat(" --> %d %s 超时未反馈,断开连接",
+                                        logger.dFormat("%d %s 超时未反馈,断开连接",
                                                 timeoutOfSecond, TimeUnit.SECONDS.toString());
                                         return false;
                                     } else if (throwable instanceof ProtocolException) {
-                                        logger.eFormat(" --> 网络交互异常: %s",
+                                        logger.eFormat("网络交互异常: %s",
+                                                throwable.toString());
+                                        return false;
+                                    } else if (throwable instanceof OverReconnectCountException) {
+                                        logger.eFormat("重连次数已达上限制: %s",
                                                 throwable.toString());
                                         return false;
                                     } else if (throwable instanceof IOException) {
-                                        logger.eFormat(" -->  网络出现异常，%d %s 后重连",
+                                        logger.eFormat("网络出现异常，%d %s 后重连",
                                                 mReconnectInterval,
                                                 mReconnectIntervalTimeUnit.toString());
                                     }
@@ -213,12 +221,19 @@ public final class RxWebSocket implements IWebSocket {
             }
             if (mWebSocket != null) {
                 if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
+                    if (currentReconnectCount >= MAX_RECONNECT_COUNT) {
+                        emitter.onError(new OverReconnectCountException("reconnect over size"));
+                        currentReconnectCount = 0;
+                        return;
+                    } else {
+                        currentReconnectCount++;
+                    }
                     long millis = mReconnectIntervalTimeUnit.toMillis(mReconnectInterval);
                     if (millis == 0) {
-                        millis = DEFAULT_TIMEOUT * 1000;
+                        millis = DEFAULT_TIMEOUT * 1500;
                     }
                     if (showLog) {
-                        logger.dFormat(" --> %d秒后即将重连", millis / 1000);
+                        logger.dFormat(" --> %d秒后即将重连[%d]", millis / 1000, currentReconnectCount);
                     }
                     SystemClock.sleep(millis);
                     emitter.onNext(WebSocketInfo.createReconnect());
@@ -233,6 +248,7 @@ public final class RxWebSocket implements IWebSocket {
                         @Override
                         public void onOpen(final WebSocket webSocket, Response response) {
                             webSocketMap.put(mWebSocketUrl, webSocket);
+                            currentReconnectCount = 0;
                             if (showLog) {
                                 logger.d("onOpen,连接已建立,新连接插入连接池中");
                             }

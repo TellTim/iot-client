@@ -14,8 +14,8 @@ import okhttp3.logging.HttpLoggingInterceptor;
  * @date 2019/12/2 15:14
  */
 public final class Builder {
-    long reconnectInterval = 1L;
-    TimeUnit reconnectIntervalTimeUnit = TimeUnit.SECONDS;
+    long reconnectInterval = 1500L;
+    TimeUnit reconnectIntervalTimeUnit = TimeUnit.MILLISECONDS;
     boolean showLog = false;
     String logTag = "client";
     OkHttpClient client;
