@@ -2,7 +2,6 @@ package com.tim.iot.auth;
 
 import android.text.TextUtils;
 import com.tim.common.Logger;
-import com.tim.iot.BuildConfig;
 import com.tim.iot.auth.entity.WebSocketInfo;
 import com.tim.iot.auth.rx.IWebSocket;
 import com.tim.iot.device.entity.AccountInfo;
@@ -21,6 +20,7 @@ public class AuthServer implements IAuthServer {
     private static final Logger logger = Logger.getLogger(TAG);
     private IWebSocket webSocket;
     private Disposable disposable;
+
     public AuthServer() {
         this.webSocket = new Builder().setShowLog(true, TAG).build();
     }
@@ -28,10 +28,10 @@ public class AuthServer implements IAuthServer {
     @Override
     public synchronized void connect(String url, int timeoutOfSecond,
             IConnectAuthServerCallback connectAuthServerCallback) {
-        this.webSocket.connect(url,timeoutOfSecond).subscribe(new Observer<WebSocketInfo>() {
+        this.webSocket.connect(url, timeoutOfSecond).subscribe(new Observer<WebSocketInfo>() {
             @Override
             public void onSubscribe(Disposable d) {
-                logger.d("开始监听连接变化");
+                logger.d("订阅关系已建立");
                 disposable = d;
             }
 
@@ -42,7 +42,7 @@ public class AuthServer implements IAuthServer {
                     connectAuthServerCallback.onConnectSuccess();
                 } else if (webSocketInfo.getSimpleMsg() != null) {
                     String simpleMessage = webSocketInfo.getSimpleMsg();
-                    logger.d("收到消息: "+simpleMessage);
+                    logger.d("收到消息: " + simpleMessage);
                     if (!TextUtils.isEmpty(simpleMessage) && simpleMessage.startsWith("confirm")) {
                         String[] convertArray = simpleMessage.split("#");
                         AccountInfo accountInfo = new AccountInfo();
@@ -54,6 +54,8 @@ public class AuthServer implements IAuthServer {
                     logger.d("receive byte message");
                 } else if (webSocketInfo.isReconnect()) {
                     logger.d("正在重连");
+                } else if (webSocketInfo.isPreConnect()) {
+                    logger.d("准备连接");
                 }
             }
 
@@ -77,8 +79,17 @@ public class AuthServer implements IAuthServer {
 
     @Override
     public void closeConnect(String url) {
-        if (!disposable.isDisposed()){
+        logger.d("closeConnect");
+        if (!disposable.isDisposed()) {
+            logger.d("dispose");
             disposable.dispose();
+        }else {
+            logger.d("dispose isDisposed");
         }
+    }
+
+    @Override
+    public void forceClose() {
+        this.webSocket.forceClose();
     }
 }

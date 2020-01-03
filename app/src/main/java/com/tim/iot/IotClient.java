@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
  * @date 2019/12/27 14:59
  */
 public class IotClient implements IIotClient {
-    private static final Logger logger = Logger.getLogger("AuthServer");
+    private static final Logger logger = Logger.getLogger("IotClient");
     private static IIotClient instance;
     private ExecutorService executorService;
     private Context context;
@@ -88,7 +88,7 @@ public class IotClient implements IIotClient {
     }
 
     @Override
-    public void syncQrCode(ISyncQrCodeCallback callback) {
+    public synchronized void syncQrCode(ISyncQrCodeCallback callback) {
         this.registerServer.syncQrCode(this.deviceInfo, new ICallback<AccountInfo, Respond>() {
             @Override
             public void onSuccess(AccountInfo accountInfo) {
@@ -124,9 +124,8 @@ public class IotClient implements IIotClient {
                                 @Override
                                 public void onTimeOut() {
                                     logger.d("onTimeOut");
-                                    //authServer.closeConnect(urlInfo.toString());
                                     callback.onAuthTimeOut();
-                                    authServer.closeConnect(urlInfo.toString());
+                                    authServer.forceClose();
                                 }
 
                                 @Override

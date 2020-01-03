@@ -8,7 +8,8 @@ public enum WebSocketCloseEnum {
     /**
      * websocket关闭枚举
      */
-    USER_EXIT(1000,"close");
+    USER_EXIT(1000,"close"),
+    FORCE_EXIT(3000,"timeout close");
     private int code;
     private String reason;
 

@@ -15,6 +15,15 @@ public class WebSocketInfo implements Serializable {
     private ByteString byteStringMsg;
     private boolean connected;
     private boolean reconnect;
+    private boolean preConnect;
+
+    public boolean isPreConnect() {
+        return preConnect;
+    }
+
+    public void setPreConnect(boolean preConnect) {
+        this.preConnect = preConnect;
+    }
 
     public WebSocket getWebSocket() {
         return mWebSocket;
@@ -74,6 +83,14 @@ public class WebSocketInfo implements Serializable {
     public static WebSocketInfo createConnected(WebSocket webSocket) {
         WebSocketInfo socketInfo = new WebSocketInfo();
         socketInfo.connected = true;
+        socketInfo.mWebSocket = webSocket;
+        return socketInfo;
+    }
+
+
+    public static WebSocketInfo createPreConnect(WebSocket webSocket) {
+        WebSocketInfo socketInfo = new WebSocketInfo();
+        socketInfo.preConnect = true;
         socketInfo.mWebSocket = webSocket;
         return socketInfo;
     }

@@ -114,7 +114,7 @@ public final class RxWebSocket implements IWebSocket {
             }
             WebSocket webSocket = webSocketMap.get(url);
             if (webSocket != null) {
-                observable = observable.startWith(WebSocketInfo.createConnected(webSocket));
+                observable = observable.startWith(WebSocketInfo.createPreConnect(webSocket));
             } else {
                 if (showLog) {
                     logger.e("从缓存获取为空");
@@ -125,30 +125,39 @@ public final class RxWebSocket implements IWebSocket {
     }
 
     private void closeNow(String url) {
-        if (showLog) {
-            logger.d("closeNow");
-        }
-        closeWebSocket(webSocketMap.get(url));
+        closeWebSocket(webSocketMap.get(url), false);
     }
 
-    private void closeWebSocket(WebSocket webSocket) {
+    private void closeWebSocket(WebSocket webSocket, boolean force) {
         if (webSocket == null) {
             if (showLog) {
                 logger.dFormat(" --> 连接已不存在,缓冲池中还剩下%d个监听", observableWebSocketInfoMap.size());
             }
             return;
         }
-        WebSocketCloseEnum normalCloseEnum = WebSocketCloseEnum.USER_EXIT;
-        boolean result = webSocket.close(normalCloseEnum.getCode(), normalCloseEnum.getReason());
+        if (showLog) {
+            logger.d("closeWebSocket");
+        }
+        WebSocketCloseEnum closeEnum;
+        if (force) {
+            closeEnum = WebSocketCloseEnum.FORCE_EXIT;
+        } else {
+            closeEnum = WebSocketCloseEnum.USER_EXIT;
+        }
+        boolean result = webSocket.close(closeEnum.getCode(), closeEnum.getReason());
         if (result) {
             removeUrlWebSocketMapping(webSocket);
             if (showLog) {
-                logger.dFormat(" --> 关闭连接成功,缓存池中还剩下%d个监听,%d个连接实例", webSocketMap.size(),
+                logger.dFormat("关闭连接成功,缓存池中还剩下%d个监听,%d个连接实例", webSocketMap.size(),
                         observableWebSocketInfoMap.size());
             }
         } else {
+            if (force) {
+                removeUrlWebSocketMapping(webSocket);
+            }
             if (showLog) {
-                logger.e("关闭连接失败");
+                logger.eFormat("连接已处理关闭,缓存池中还剩下%d个监听,%d个连接实例", webSocketMap.size(),
+                        observableWebSocketInfoMap.size());
             }
         }
     }
@@ -176,12 +185,12 @@ public final class RxWebSocket implements IWebSocket {
             Disposable disposable = observable.subscribe();
             if (!disposable.isDisposed()) {
                 disposable.dispose();
-            }else{
+            } else {
                 if (showLog) {
                     logger.d("disposable.isDisposed");
                 }
             }
-        }else{
+        } else {
             if (showLog) {
                 logger.d("observable == null");
             }
@@ -200,7 +209,7 @@ public final class RxWebSocket implements IWebSocket {
         @Override
         public void subscribe(ObservableEmitter<WebSocketInfo> emitter) throws Exception {
             if (showLog) {
-                logger.d("subscribe");
+                logger.d("开始订阅");
             }
             if (mWebSocket != null) {
                 if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
@@ -209,98 +218,111 @@ public final class RxWebSocket implements IWebSocket {
                         millis = DEFAULT_TIMEOUT * 1000;
                     }
                     if (showLog) {
-                        logger.dFormat(" --> %d秒后即将重连", millis);
+                        logger.dFormat(" --> %d秒后即将重连", millis / 1000);
                     }
                     SystemClock.sleep(millis);
                     emitter.onNext(WebSocketInfo.createReconnect());
                 }
-            } else {
-                mWebSocket =
-                        mClient.newWebSocket(getRequest(mWebSocketUrl), new WebSocketListener() {
-                            @Override
-                            public void onOpen(final WebSocket webSocket, Response response) {
-                                webSocketMap.put(mWebSocketUrl, webSocket);
-                                if (showLog) {
-                                    logger.dFormat(" --> %sonOpen,新连接插入连接池中", mWebSocketUrl);
-                                }
-                                if (!emitter.isDisposed()) {
-                                    if (showLog) {
-                                        logger.dFormat(" --> %s上报已经连接状态", mWebSocketUrl);
-                                    }
-                                    emitter.onNext(WebSocketInfo.createConnected(webSocket));
-                                }
-                            }
-
-                            @Override
-                            public void onMessage(WebSocket webSocket, String text) {
-                                if (showLog) {
-                                    logger.d("onMessage ,收到新消息:" + text);
-                                }
-                                if (!emitter.isDisposed()) {
-                                    if (showLog) {
-                                        logger.dFormat(" --> %s上报收到新消息: ", mWebSocketUrl, text);
-                                    }
-                                    emitter.onNext(WebSocketInfo.createMsg(webSocket, text));
-                                }
-                            }
-
-                            @Override
-                            public void onMessage(WebSocket webSocket, ByteString bytes) {
-                                if (showLog) {
-                                    logger.dFormat(" --> %sonMessage ,收到新消息: %s", mWebSocketUrl,
-                                            bytes.base64());
-                                }
-                                if (!emitter.isDisposed()) {
-                                    if (showLog) {
-                                        logger.dFormat(" --> %sonMessage ,上报收到新消息: %s",
-                                                mWebSocketUrl,
-                                                bytes.base64());
-                                    }
-                                    emitter.onNext(
-                                            WebSocketInfo.createByteStringMsg(webSocket, bytes));
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(WebSocket webSocket, Throwable t,
-                                    Response response) {
-                                if (showLog) {
-                                    logger.eFormat(" --> %sonFailure %s %s", mWebSocketUrl,
-                                            t.toString(),
-                                            webSocket.request().url().uri().getPath());
-                                }
-                                if (!emitter.isDisposed()) {
-                                    if (showLog) {
-                                        logger.eFormat(" --> %s上报异常: ", mWebSocketUrl,
-                                                t.toString());
-                                    }
-                                    emitter.onError(t);
-                                }
-                            }
-
-                            @Override
-                            public void onClosing(WebSocket webSocket, int code, String reason) {
-                                if (showLog) {
-                                    logger.dFormat(
-                                            "%sonClosing:code=%d,reason=%s", mWebSocketUrl,
-                                            code, reason);
-                                }
-                            }
-
-                            @Override
-                            public void onClosed(WebSocket webSocket, int code, String reason) {
-                                if (showLog) {
-                                    logger.dFormat(
-                                            "%sonClosed:code=%d,reason=%s", mWebSocketUrl,
-                                            code, reason);
-                                }
-                            }
-                        });
             }
+            initWebSocket(emitter);
+        }
+
+        private synchronized void initWebSocket(ObservableEmitter<WebSocketInfo> emitter) {
+            mWebSocket =
+                    mClient.newWebSocket(getRequest(mWebSocketUrl), new WebSocketListener() {
+                        @Override
+                        public void onOpen(final WebSocket webSocket, Response response) {
+                            webSocketMap.put(mWebSocketUrl, webSocket);
+                            if (showLog) {
+                                logger.d("onOpen,连接已建立,新连接插入连接池中");
+                            }
+                            if (!emitter.isDisposed()) {
+                                if (showLog) {
+                                    logger.d("上报已经连接状态");
+                                }
+                                emitter.onNext(WebSocketInfo.createConnected(webSocket));
+                            }
+                        }
+
+                        @Override
+                        public void onMessage(WebSocket webSocket, String text) {
+                            if (showLog) {
+                                logger.d("onMessage,收到新消息:" + text);
+                            }
+                            if (!emitter.isDisposed()) {
+                                if (showLog) {
+                                    logger.d("上报收到新消息");
+                                }
+                                emitter.onNext(WebSocketInfo.createMsg(webSocket, text));
+                            }
+                        }
+
+                        @Override
+                        public void onMessage(WebSocket webSocket, ByteString bytes) {
+                            if (showLog) {
+                                logger.d("onMessage,收到新消息");
+                            }
+                            if (!emitter.isDisposed()) {
+                                if (showLog) {
+                                    logger.d("onMessage,上报收到新消息");
+                                }
+                                emitter.onNext(
+                                        WebSocketInfo.createByteStringMsg(webSocket, bytes));
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(WebSocket webSocket, Throwable t,
+                                Response response) {
+                            if (showLog) {
+                                logger.eFormat("%s onFailure %s %s", mWebSocketUrl,
+                                        t.toString(),
+                                        webSocket.request().url().uri().getPath());
+                            }
+                            if (!emitter.isDisposed()) {
+                                if (showLog) {
+                                    logger.eFormat("%s上报异常: ", mWebSocketUrl,
+                                            t.toString());
+                                }
+                                emitter.onError(t);
+                            }
+                        }
+
+                        @Override
+                        public void onClosing(WebSocket webSocket, int code, String reason) {
+                            if (showLog) {
+                                logger.dFormat(
+                                        "%s onClosing:code=%d,reason=%s", mWebSocketUrl,
+                                        code, reason);
+                            }
+                        }
+
+                        @Override
+                        public void onClosed(WebSocket webSocket, int code, String reason) {
+                            if (showLog) {
+                                logger.dFormat(
+                                        "%s onClosed:code=%d,reason=%s", mWebSocketUrl,
+                                        code, reason);
+                            }
+                        }
+                    });
+            emitter.setCancellable(() -> {
+                mWebSocket.close(3000, "close WebSocket");
+                if (showLog) {
+                    logger.d(mWebSocketUrl + " 取消连接");
+                }
+            });
         }
     }
 
     private Request getRequest(String url) {
         return new Request.Builder().get().url(url).build();
+    }
+
+    @Override
+    public void forceClose() {
+        for (Map.Entry<String, WebSocket> entry : webSocketMap.entrySet()) {
+            closeWebSocket(entry.getValue(), true);
+        }
     }
 }

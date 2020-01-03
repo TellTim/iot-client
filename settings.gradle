@@ -1,2 +1,2 @@
-include ':app', ':ws-lib', ':trace-lib'
+include ':app', ':trace-lib'
 rootProject.name='Iot'

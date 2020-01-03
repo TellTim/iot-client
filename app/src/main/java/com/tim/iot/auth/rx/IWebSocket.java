@@ -17,4 +17,7 @@ public interface IWebSocket {
      * 马上关闭所有连接
      */
     void closeConnect(String url);
+
+
+    void forceClose();
 }

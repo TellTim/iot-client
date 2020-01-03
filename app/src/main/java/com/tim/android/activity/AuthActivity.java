@@ -94,6 +94,8 @@ public class AuthActivity extends AppCompatActivity implements ServiceConnection
         serviceHandler.registerViewHandler(this);
         tvErrorMsg.setOnClickListener(view -> {
             //todo
+            pbQrCode.setVisibility(View.VISIBLE);
+            lLayoutErrorMsg.setVisibility(View.GONE);
             serviceHandler.retryHandler();
         });
     }

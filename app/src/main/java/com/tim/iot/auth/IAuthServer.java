@@ -13,6 +13,8 @@ public interface IAuthServer {
 
     void closeConnect(String url);
 
+    void forceClose();
+
     interface IConnectAuthServerCallback{
         void onConnectSuccess();
         void onConnectError(Exception e);
