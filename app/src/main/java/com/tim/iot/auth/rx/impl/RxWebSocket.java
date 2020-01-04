@@ -3,6 +3,7 @@ package com.tim.iot.auth.rx.impl;
 import android.os.Looper;
 import android.os.SystemClock;
 import com.tim.common.Logger;
+import com.tim.iot.auth.heartbeat.HeartBeatTask;
 import com.tim.iot.auth.entity.WebSocketCloseEnum;
 import com.tim.iot.auth.entity.WebSocketInfo;
 import com.tim.iot.auth.exception.OverReconnectCountException;
@@ -16,6 +17,7 @@ import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.net.ProtocolException;
 import java.util.Map;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -34,6 +36,7 @@ import okio.ByteString;
  */
 public final class RxWebSocket implements IWebSocket {
     private static final long DEFAULT_TIMEOUT = 5L;
+    private static final int HEART_BEAT_INTERVAL = 2000;
     private OkHttpClient mClient;
     private long mReconnectInterval;
     private TimeUnit mReconnectIntervalTimeUnit;
@@ -45,14 +48,15 @@ public final class RxWebSocket implements IWebSocket {
     private Logger logger;
     private static final int MAX_RECONNECT_COUNT = 30;
     private int currentReconnectCount;
-
+    private HeartBeatTask heartBeatTask;
     public RxWebSocket(OkHttpClient client, long reconnectInterval,
             TimeUnit reconnectIntervalTimeUnit, boolean showLog, String logTag,
-            SSLSocketFactory sslSocketFactory, X509TrustManager trustManager) {
+            SSLSocketFactory sslSocketFactory, X509TrustManager trustManager,boolean enableHeartBeat,String heartBeatHead) {
         this.mReconnectInterval = reconnectInterval;
         this.mReconnectIntervalTimeUnit = reconnectIntervalTimeUnit;
         this.showLog = showLog;
         this.logger = Logger.getLogger(logTag + "-client");
+        this.heartBeatTask = new HeartBeatTask(enableHeartBeat,HEART_BEAT_INTERVAL,ByteString.decodeBase64(heartBeatHead));
         if (sslSocketFactory != null && trustManager != null) {
             this.mClient =
                     client.newBuilder().sslSocketFactory(sslSocketFactory, trustManager).build();
@@ -62,6 +66,7 @@ public final class RxWebSocket implements IWebSocket {
         this.observableWebSocketInfoMap = new ConcurrentHashMap<>();
         this.webSocketMap = new ConcurrentHashMap<>();
         this.currentReconnectCount = 0;
+
     }
 
     /**
@@ -252,12 +257,15 @@ public final class RxWebSocket implements IWebSocket {
                             if (showLog) {
                                 logger.d("onOpen,连接已建立,新连接插入连接池中");
                             }
+
                             if (!emitter.isDisposed()) {
                                 if (showLog) {
                                     logger.d("上报已经连接状态");
                                 }
                                 emitter.onNext(WebSocketInfo.createConnected(webSocket));
                             }
+                            //开启发送心跳
+                            heartBeatTask.start(webSocket::send);
                         }
 
                         @Override
@@ -323,6 +331,8 @@ public final class RxWebSocket implements IWebSocket {
                         }
                     });
             emitter.setCancellable(() -> {
+                //停止心跳发送
+                heartBeatTask.stop();
                 mWebSocket.close(3000, "close WebSocket");
                 if (showLog) {
                     logger.d(mWebSocketUrl + " 取消连接");
@@ -339,6 +349,18 @@ public final class RxWebSocket implements IWebSocket {
     public void forceClose() {
         for (Map.Entry<String, WebSocket> entry : webSocketMap.entrySet()) {
             closeWebSocket(entry.getValue(), true);
+        }
+    }
+
+    private final class HeartBeatTimerTask extends TimerTask{
+        private WebSocket webSocket;
+        public HeartBeatTimerTask(WebSocket webSocket) {
+            this.webSocket = webSocket;
+        }
+
+        @Override
+        public void run() {
+
         }
     }
 }

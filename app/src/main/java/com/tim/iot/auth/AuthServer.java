@@ -7,6 +7,7 @@ import com.tim.iot.auth.rx.IWebSocket;
 import com.tim.iot.device.entity.AccountInfo;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -20,9 +21,8 @@ public class AuthServer implements IAuthServer {
     private static final Logger logger = Logger.getLogger(TAG);
     private IWebSocket webSocket;
     private Disposable disposable;
-
     public AuthServer() {
-        this.webSocket = new Builder().setShowLog(true, TAG).build();
+        this.webSocket = new Builder().setHeartBeat(true).setShowLog(true, TAG).build();
     }
 
     @Override
@@ -83,7 +83,7 @@ public class AuthServer implements IAuthServer {
         if (!disposable.isDisposed()) {
             logger.d("dispose");
             disposable.dispose();
-        }else {
+        } else {
             logger.d("dispose isDisposed");
         }
     }

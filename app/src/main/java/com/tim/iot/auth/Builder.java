@@ -3,6 +3,7 @@ package com.tim.iot.auth;
 import com.tim.iot.auth.rx.impl.RxWebSocket;
 import com.tim.iot.common.DeviceInfo;
 import io.reactivex.annotations.NonNull;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
@@ -14,13 +15,15 @@ import okhttp3.logging.HttpLoggingInterceptor;
  * @date 2019/12/2 15:14
  */
 public final class Builder {
-    long reconnectInterval = 1500L;
-    TimeUnit reconnectIntervalTimeUnit = TimeUnit.MILLISECONDS;
-    boolean showLog = false;
-    String logTag = "client";
-    OkHttpClient client;
-    SSLSocketFactory sslSocketFactory;
-    X509TrustManager trustManager;
+    private long reconnectInterval = 1500L;
+    private TimeUnit reconnectIntervalTimeUnit = TimeUnit.MILLISECONDS;
+    private boolean showLog = false;
+    private String logTag = "client";
+    private OkHttpClient client;
+    private SSLSocketFactory sslSocketFactory;
+    private X509TrustManager trustManager;
+    private boolean enableHeartBeat;
+    private String heartBeatHead;
     public Builder() {
         try {
             Class.forName("okhttp3.OkHttpClient");
@@ -58,6 +61,18 @@ public final class Builder {
         return this;
     }
 
+    public Builder setHeartBeat(boolean enable) {
+        this.enableHeartBeat = enable;
+        this.heartBeatHead = "hc";
+        return this;
+    }
+
+    public Builder setHeartBeat(boolean enable, String head) {
+        setHeartBeat(enable);
+        this.heartBeatHead = head;
+        return this;
+    }
+
     ///外部不需要设置http客户端,暂时不支持ping的功能(容易触发异常,不受控制)
     /*public Builder setClient(@NonNull OkHttpClient client) {
         this.client = client;
@@ -82,6 +97,6 @@ public final class Builder {
         return new RxWebSocket(this.client,
                 this.reconnectInterval, this.reconnectIntervalTimeUnit,
                 this.showLog, this.logTag,
-                this.sslSocketFactory, this.trustManager);
+                this.sslSocketFactory, this.trustManager,this.enableHeartBeat,this.heartBeatHead);
     }
 }
