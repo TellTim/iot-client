@@ -352,16 +352,4 @@ public final class RxWebSocket implements IWebSocket {
             closeWebSocket(entry.getValue(), true);
         }
     }
-
-    private final class HeartBeatTimerTask extends TimerTask{
-        private WebSocket webSocket;
-        public HeartBeatTimerTask(WebSocket webSocket) {
-            this.webSocket = webSocket;
-        }
-
-        @Override
-        public void run() {
-
-        }
-    }
 }

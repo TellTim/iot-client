@@ -22,7 +22,7 @@ public class AuthServer implements IAuthServer {
     private IWebSocket webSocket;
     private Disposable disposable;
     public AuthServer() {
-        this.webSocket = new Builder().setHeartBeat(true).setShowLog(true, TAG).build();
+        this.webSocket = new Builder().setHeartBeat(false).setShowLog(true, TAG).build();
     }
 
     @Override
