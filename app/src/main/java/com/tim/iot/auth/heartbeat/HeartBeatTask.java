@@ -31,8 +31,12 @@ public final class HeartBeatTask {
             reset();
             this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
             try {
+                logger.d("开启心跳");
                 this.scheduledExecutorService.scheduleWithFixedDelay(
-                        () -> callback.deal(heartBeatHead), 0, this.interval, TimeUnit.SECONDS);
+                        () -> {
+                            logger.d("发送心跳");
+                            callback.deal(heartBeatHead);
+                        }, 0, this.interval, TimeUnit.SECONDS);
             } catch (Exception e) {
                 logger.e("start " + e.getMessage());
             }
@@ -48,6 +52,7 @@ public final class HeartBeatTask {
                 && this.scheduledExecutorService != null
                 && !this.scheduledExecutorService.isShutdown()) {
             try {
+                logger.d("心跳复位");
                 this.scheduledExecutorService.shutdown();
             } catch (Exception e) {
                 try {

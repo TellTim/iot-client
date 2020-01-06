@@ -36,7 +36,7 @@ import okio.ByteString;
  */
 public final class RxWebSocket implements IWebSocket {
     private static final long DEFAULT_TIMEOUT = 5L;
-    private static final int HEART_BEAT_INTERVAL = 2000;
+    private static final int HEART_BEAT_INTERVAL = 2;
     private OkHttpClient mClient;
     private long mReconnectInterval;
     private TimeUnit mReconnectIntervalTimeUnit;
@@ -331,12 +331,13 @@ public final class RxWebSocket implements IWebSocket {
                         }
                     });
             emitter.setCancellable(() -> {
-                //停止心跳发送
-                heartBeatTask.stop();
-                mWebSocket.close(3000, "close WebSocket");
                 if (showLog) {
                     logger.d(mWebSocketUrl + " 取消连接");
                 }
+                //停止心跳发送
+                heartBeatTask.stop();
+                mWebSocket.close(3000, "close WebSocket");
+
             });
         }
     }
