@@ -77,38 +77,37 @@ class RxWebSocket(client: OkHttpClient, private val mReconnectInterval: Long,
                     .timeout(timeoutOfSecond.toLong(), TimeUnit.SECONDS)
                     //重连
                     .retry { throwable ->
-                        if (showLog) {
-                            if (throwable is TimeoutException) {
-                                logger.dFormat("%d %s 超时未反馈,断开连接",
-                                        timeoutOfSecond, TimeUnit.SECONDS.toString())
-                                return@Observable.create(new WebSocketOnSubscribe url)
-                                        //超时设置
-                                        .timeout(timeoutOfSecond, TimeUnit.SECONDS)
-                                        //重连
-                                        .retry false
-                            } else if (throwable is ProtocolException) {
-                                logger.eFormat("网络交互异常: %s",
-                                        throwable.toString())
-                                return@Observable.create(new WebSocketOnSubscribe url)
-                                        //超时设置
-                                        .timeout(timeoutOfSecond, TimeUnit.SECONDS)
-                                        //重连
-                                        .retry false
-                            } else if (throwable is OverReconnectCountException) {
-                                logger.eFormat("重连次数已达上限制: %s",
-                                        throwable.toString())
-                                return@Observable.create(new WebSocketOnSubscribe url)
-                                        //超时设置
-                                        .timeout(timeoutOfSecond, TimeUnit.SECONDS)
-                                        //重连
-                                        .retry false
-                            } else if (throwable is IOException) {
-                                logger.eFormat("网络出现异常，%d %s 后重连",
-                                        mReconnectInterval,
-                                        mReconnectIntervalTimeUnit.toString())
+                        when (throwable) {
+                            is TimeoutException -> {
+                                if (showLog) {
+                                    logger.dFormat("%d %s 超时未反馈,断开连接",
+                                            timeoutOfSecond, TimeUnit.SECONDS.toString())
+                                }
+                                false
+                            }
+                            is ProtocolException -> {
+                                if (showLog) {
+                                    logger.eFormat("网络交互异常: %s",
+                                            throwable.toString())
+                                }
+                                false
+                            }
+                            is OverReconnectCountException -> {
+                                if (showLog) {
+                                    logger.eFormat("重连次数已达上限制: %s",
+                                            throwable.toString())
+                                }
+                                false
+                            }
+                            else -> {
+                                if (showLog) {
+                                    logger.eFormat("网络出现异常，%d %s 后重连",
+                                            mReconnectInterval,
+                                            mReconnectIntervalTimeUnit.toString())
+                                }
+                                true
                             }
                         }
-                        throwable is IOException
                     }
                     .doOnDispose {
                         if (showLog) {
@@ -260,8 +259,13 @@ class RxWebSocket(client: OkHttpClient, private val mReconnectInterval: Long,
                             emitter.onNext(WebSocketInfo.createConnected(webSocket))
                         }
                         //开启发送心跳
-                        heartBeatTask.start(IHeartBeatCallback { webSocket.send(it) })
-                        heartBeatTask.start(()->{webSocket.send()})
+                        heartBeatTask.run {
+                            start(object : IHeartBeatCallback {
+                                override fun deal(msg: ByteString) {
+                                    webSocket.send(msg)
+                                }
+                            })
+                        }
                     }
 
                     override fun onMessage(webSocket: WebSocket, text: String) {
