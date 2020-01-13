@@ -13,11 +13,8 @@ import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import java.io.IOException
 import java.net.ProtocolException
-import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -38,7 +35,7 @@ import okio.ByteString.Companion.decodeBase64
 class RxWebSocket(client: OkHttpClient, private val mReconnectInterval: Long,
     private val mReconnectIntervalTimeUnit: TimeUnit, private val showLog: Boolean, logTag: String,
     sslSocketFactory: SSLSocketFactory?, trustManager: X509TrustManager?, enableHeartBeat: Boolean,
-    heartBeatHead: String) : IWebSocket {
+    heartBeatHead: String?) : IWebSocket {
     private var mClient: OkHttpClient? = null
     private val observableWebSocketInfoMap: MutableMap<String, Observable<WebSocketInfo>>
     private val webSocketMap: MutableMap<String, WebSocket>
@@ -50,7 +47,7 @@ class RxWebSocket(client: OkHttpClient, private val mReconnectInterval: Long,
 
     init {
         this.heartBeatTask = HeartBeatTask(enableHeartBeat, HEART_BEAT_INTERVAL,
-                heartBeatHead.decodeBase64()!!)
+                heartBeatHead?.decodeBase64()!!)
         if (sslSocketFactory != null && trustManager != null) {
             this.mClient =
                 client.newBuilder().sslSocketFactory(sslSocketFactory, trustManager).build()

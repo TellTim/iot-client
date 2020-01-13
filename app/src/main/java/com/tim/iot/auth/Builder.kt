@@ -1,9 +1,7 @@
 package com.tim.iot.auth
 
 import com.tim.iot.auth.rx.impl.RxWebSocket
-import com.tim.iot.common.DeviceInfo
 import io.reactivex.annotations.NonNull
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
