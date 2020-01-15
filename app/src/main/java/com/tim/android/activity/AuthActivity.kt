@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.IBinder
 import android.text.TextUtils
@@ -32,11 +33,11 @@ import io.reactivex.schedulers.Schedulers
  * @date 2019/12/24 19:45
  */
 class AuthActivity : AppCompatActivity(), ServiceConnection, IViewHandler {
+    private var imgQrCode: ImageView? = null
+    private var pbQrCode: ProgressBar? = null
+    private var tvErrorMsg: TextView? = null
+    private var lLayoutErrorMsg: LinearLayout? = null
     private var serviceHandler: IServiceHandler? = null
-    internal var imgQrCode: ImageView
-    internal var pbQrCode: ProgressBar
-    internal var tvErrorMsg: TextView
-    internal var lLayoutErrorMsg: LinearLayout
     private var subscribe: Disposable? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,10 +84,10 @@ class AuthActivity : AppCompatActivity(), ServiceConnection, IViewHandler {
     override fun onServiceConnected(componentName: ComponentName, binder: IBinder) {
         serviceHandler = (binder as CoreService.Binder).serviceHandler
         serviceHandler!!.registerViewHandler(this)
-        tvErrorMsg.setOnClickListener { view ->
+        tvErrorMsg?.setOnClickListener { view ->
             //todo
-            pbQrCode.visibility = View.VISIBLE
-            lLayoutErrorMsg.visibility = View.GONE
+            pbQrCode!!.visibility = View.VISIBLE
+            lLayoutErrorMsg!!.visibility = View.GONE
             serviceHandler!!.retryHandler()
         }
     }
@@ -101,29 +102,29 @@ class AuthActivity : AppCompatActivity(), ServiceConnection, IViewHandler {
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({ bitmap ->
-                        imgQrCode.visibility = View.VISIBLE
-                        imgQrCode.setImageBitmap(bitmap)
-                        pbQrCode.visibility = View.GONE
-                        lLayoutErrorMsg.visibility = View.GONE
+                        imgQrCode!!.visibility = View.VISIBLE
+                        imgQrCode!!.setImageBitmap(bitmap)
+                        pbQrCode!!.visibility = View.GONE
+                        lLayoutErrorMsg!!.visibility = View.GONE
                     }, { throwable -> logger.e("error " + throwable.localizedMessage!!) })
         }
     }
 
     override fun onShowTimeOut() {
         runOnUiThread {
-            imgQrCode.visibility = View.GONE
-            pbQrCode.visibility = View.GONE
-            lLayoutErrorMsg.visibility = View.VISIBLE
-            tvErrorMsg.text = "授权超时,请重新获取二维码"
+            imgQrCode!!.visibility = View.GONE
+            pbQrCode!!.visibility = View.GONE
+            lLayoutErrorMsg!!.visibility = View.VISIBLE
+            tvErrorMsg!!.text = "授权超时,请重新获取二维码"
         }
     }
 
     override fun onShowNetError() {
         runOnUiThread {
-            imgQrCode.visibility = View.GONE
-            pbQrCode.visibility = View.GONE
-            lLayoutErrorMsg.visibility = View.VISIBLE
-            tvErrorMsg.text = "网络异常,请稍后重试"
+            imgQrCode!!.visibility = View.GONE
+            pbQrCode!!.visibility = View.GONE
+            lLayoutErrorMsg!!.visibility = View.VISIBLE
+            tvErrorMsg!!.text = "网络异常,请稍后重试"
         }
     }
 

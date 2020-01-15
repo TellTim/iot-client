@@ -21,16 +21,18 @@ import java.util.ArrayList
  * @date 2019/12/24 19:45
  */
 class TestActivity : AppCompatActivity() {
-
-    internal var tvAppInfo: TextView
+    private var tvAppInfo: TextView?=null
     private var mShowRequestPermission = true
 
     private val deviceInfo: String
         get() {
-            val deviceInfo = DeviceInfo(DeviceUtils.deviceSerial, DeviceUtils.getMacAddress(this),
-                    DeviceUtils.getImei(this, BuildConfig.PRODUCT_TYPE), BuildConfig.PRODUCT_TYPE)
-            return String.format("%s?%s", BuildConfig.REGISTER_HOST,
-                    deviceInfo.toString().replace(",".toRegex(), "&"))
+            val deviceInfo =
+                DeviceUtils.getMacAddress(this)?.let {
+                    DeviceInfo(DeviceUtils.deviceSerial, it,
+                            DeviceUtils.getImei(this, BuildConfig.PRODUCT_TYPE), BuildConfig.PRODUCT_TYPE)
+                }
+            return String.format("%s?%s:%s", BuildConfig.REGISTER_HOST,
+                    deviceInfo.toString().replace(",".toRegex(), "&"),android.os.Build.DISPLAY)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,7 +58,7 @@ class TestActivity : AppCompatActivity() {
 
             if (mPermissionList.isEmpty()) {
                 mShowRequestPermission = true
-                tvAppInfo.text = "DeviceInfo: $deviceInfo"
+                tvAppInfo!!.text = "DeviceInfo: $deviceInfo"
             } else {
                 //存在未允许的权限
                 val permissionsArr = mPermissionList.toTypedArray()

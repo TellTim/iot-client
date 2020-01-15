@@ -308,9 +308,9 @@ class CoreService : Service(), SharedPreferences.OnSharedPreferenceChangeListene
     companion object {
         private val logger = Logger.getLogger("CoreService")
 
-        private val THREAD_POOL_CORE_SIZE = 4
-        private val THREAD_POOL_MAX_SIZE = 20
-        private val THREAD_POOL_KEEP_ALIVE_TIME = 10
+        private const val THREAD_POOL_CORE_SIZE = 4
+        private const val THREAD_POOL_MAX_SIZE = 20
+        private const val THREAD_POOL_KEEP_ALIVE_TIME = 10
         private val TIME_UNIT = TimeUnit.SECONDS
     }
 }
