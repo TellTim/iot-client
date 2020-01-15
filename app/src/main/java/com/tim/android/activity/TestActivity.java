@@ -57,7 +57,7 @@ public class TestActivity extends AppCompatActivity {
                 mShowRequestPermission = true;
                 tvAppInfo.setText("DeviceInfo: " + getDeviceInfo());
                 TraceClient.getInstance().sendTrace(
-                        new TraceInfo("TestActivity",
+                        new TraceInfo("vityTestActivityTestActivityTestActivityTestActivityTestActivity",
                                 "initPermission", "test", "info"));
             } else {
                 //存在未允许的权限
