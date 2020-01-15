@@ -18,6 +18,7 @@ android {
       buildConfigField "String", "PRODUCT_TYPE", '"type-a"'
       buildConfigField "String", "REGISTER_HOST", '"http://192.168.1.173:10072/device/api/v1/"'
       buildConfigField "String", "AUTH_HOST", '"ws://192.168.1.173:9070/auth/api/v1/check"'
+      buildConfigField "String", "GATHER_HOST", '"http://192.168.1.173:18135/gather/"'
       buildConfigField "boolean", "DEBUG_REGISTER", 'false'
     }
     pro {
@@ -85,4 +86,5 @@ dependencies {
   implementation 'cn.bingoogolapple:bga-qrcodecore:1.1.7@aar'
   implementation 'cn.bingoogolapple:bga-zxing:1.1.7@aar'
   implementation 'cn.bingoogolapple:bga-refreshlayout:1.1.7'
+  implementation project(path: ':trace-lib')
 }

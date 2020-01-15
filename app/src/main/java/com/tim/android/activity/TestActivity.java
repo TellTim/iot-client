@@ -13,6 +13,8 @@ import com.tim.common.DeviceUtils;
 import com.tim.iot.BuildConfig;
 import com.tim.iot.R;
 import com.tim.iot.common.DeviceInfo;
+import com.tim.iot.trace.TraceClient;
+import com.tim.iot.trace.domain.entity.TraceInfo;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +28,8 @@ public class TestActivity extends AppCompatActivity {
 
     TextView tvAppInfo;
     private boolean mShowRequestPermission = true;
-    private static final int REQUEST_PERMISSION_CODE= 101;
+    private static final int REQUEST_PERMISSION_CODE = 101;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +55,10 @@ public class TestActivity extends AppCompatActivity {
 
             if (mPermissionList.isEmpty()) {
                 mShowRequestPermission = true;
-                tvAppInfo.setText("DeviceInfo: " +getDeviceInfo());
+                tvAppInfo.setText("DeviceInfo: " + getDeviceInfo());
+                TraceClient.getInstance().sendTrace(
+                        new TraceInfo("TestActivity",
+                                "initPermission", "test", "info"));
             } else {
                 //存在未允许的权限
                 String[] permissionsArr =
@@ -65,7 +71,8 @@ public class TestActivity extends AppCompatActivity {
     private String getDeviceInfo() {
         DeviceInfo deviceInfo =
                 new DeviceInfo(DeviceUtils.getDeviceSerial(), DeviceUtils.getMacAddress(this),
-                        DeviceUtils.getImei(this, BuildConfig.PRODUCT_TYPE), BuildConfig.PRODUCT_TYPE);
+                        DeviceUtils.getImei(this, BuildConfig.PRODUCT_TYPE),
+                        BuildConfig.PRODUCT_TYPE);
         return String.format("%s?%s", BuildConfig.REGISTER_HOST,
                 deviceInfo.toString().replaceAll(",", "&"));
     }
@@ -79,7 +86,8 @@ public class TestActivity extends AppCompatActivity {
                 if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                     //判断是否勾选禁止后不再询问
                     boolean showRequestPermission =
-                            ActivityCompat.shouldShowRequestPermissionRationale(this,permissions[i]);
+                            ActivityCompat.shouldShowRequestPermissionRationale(this,
+                                    permissions[i]);
                     if (showRequestPermission) {
                         initPermission();
                         return;
